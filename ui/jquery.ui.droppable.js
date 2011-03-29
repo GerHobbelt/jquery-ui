@@ -164,6 +164,13 @@ $.ui.intersect = function(draggable, droppable, toleranceMode) {
 			return (l <= x1 && x2 <= r
 				&& t <= y1 && y2 <= b);
 			break;
+			
+			//YAST. Added intersect-test only checking vertical intersections.
+			//used for dragging elements between week-timelines
+	    case 'intersect-vert':
+		    return (t < y1 + (draggable.helperProportions.height / 2) // Bottom Half
+			    && y2 - (draggable.helperProportions.height / 2) < b ); // Top Half
+
 		case 'intersect':
 			return (l < x1 + (draggable.helperProportions.width / 2) // Right Half
 				&& x2 - (draggable.helperProportions.width / 2) < r // Left Half

@@ -11,12 +11,42 @@
  *	jquery.ui.core.js
  *	jquery.ui.mouse.js
  *	jquery.ui.widget.js
+ *
+ * YAST MODIFICATIONS (notes. review if using these)
+ * -Removed code checking whether move is "useless action"
+ * -Fixed up/down check in _intersectsWithPointer
+ * -Skip intersect-with-self check
+ * -Break just before _rearrange if intersect-with-self
+ * -Added margins to _intersectsWithPointer
+ * -Chaned isOverAxis to include bottom, i.e. changed from < to <=
+ * -Removed check for whether element is within width
+ * -_intersectsWithPointer returns false on zero-height elements
+ *
+ * -For css style of placeholder, had to remove margin because the margin was different
+ *  for first element and the other elements
+ *
+ * -hard refresh on each _rearrange. To make sure groups shrink when an 
+ *  element is pulled out of it
+ *
+ * -_rearrange updates helper position in timer timeout to make sure helper moves to correct
+ *  position when helper parent moves
+ *
+ * -if no match, but between two elements, place below the upper of the two element
+ *
  */
 (function( $, undefined ) {
 
 $.widget("ui.sortable", $.ui.mouse, {
 	widgetEventPrefix: "sort",
 	options: {
+
+		//YAST FIXES
+		yastFixes: false,                        //Set to enable YAST fixes
+		yastGroupItems: '',
+		yastDebug: false,                        //Set to enable YAST debug output
+		yastItemName: function() { return ""; }, //YAST function for returning the name of a list item
+		yastLog: function(str) {},                //YAST logging function
+
 		appendTo: "parent",
 		axis: false,
 		connectWith: false,
@@ -281,28 +311,134 @@ $.widget("ui.sortable", $.ui.mouse, {
 		//Regenerate the absolute position used for position checks
 		this.positionAbs = this._convertPositionTo("absolute");
 
-		//Set the helper position
-		if(!this.options.axis || this.options.axis != "y") this.helper[0].style.left = this.position.left+'px';
-		if(!this.options.axis || this.options.axis != "x") this.helper[0].style.top = this.position.top+'px';
+		//YAST: Helper is originally positioned here. We cannot do this because the
+		//helper parent may move as a result of the stuff done below.
+		if (!this.options.yastFixes) {
+		    if(!this.options.axis || this.options.axis != "y") this.helper[0].style.left = this.position.left+'px';
+		    if(!this.options.axis || this.options.axis != "x") this.helper[0].style.top = this.position.top+'px';
+		}
+		    
+
+		var groupCreated = false;
+		this.intData = [];
+		var belowElement = null;
+		var intUpParent = null;
+		var intDownParent = null;
+
+		var rearranged = false;
+
+		//YASTFIX. Cache placeholder offset
+		this.placeholderOffset = this.placeholder.offset();
 
 		//Rearrange
 		for (var i = this.items.length - 1; i >= 0; i--) {
 
 			//Cache variables and intersection, continue if no intersection
 			var item = this.items[i], itemElement = item.item[0], intersection = this._intersectsWithPointer(item);
-			if (!intersection) continue;
+			
 
-			if(itemElement != this.currentItem[0] //cannot intersect with itself
-				&&	this.placeholder[intersection == 1 ? "next" : "prev"]()[0] != itemElement //no useless actions that have been done before
-				&&	!$.ui.contains(this.placeholder[0], itemElement) //no action if the item moved is the parent of the item checked
-				&& (this.options.type == 'semi-dynamic' ? !$.ui.contains(this.element[0], itemElement) : true)
-				//&& itemElement.parentNode == this.placeholder[0].parentNode // only rearrange items within the same container
-			) {
+		    //Cache variables and intersection, continue if no intersection
+		    var item = this.items[i], itemElement = item.item[0], intersection;
+		    
+		    //YAST: No need to check for intersection if self
+		    var notSelf = itemElement != this.currentItem[0];
+		    if (notSelf) {
+			intersection = this._intersectsWithPointer(item);
+		    }
+		    
+
+		    //YAST: Parent is not this.placeholder[0], but this.currentItem[0]. Removed check for useless action as well
+		    if(notSelf //cannot intersect with itself
+		       && (this.options.yastFixes ||	this.placeholder[intersection == 1 ? "next" : "prev"]()[0] != itemElement) //no useless actions that have been done before
+		       && (this.options.yastFixes ? 
+			   !$.ui.contains(this.currentItem[0], itemElement) :	
+			   !$.ui.contains(this.placeholder[0], itemElement)) //no action if the item moved is the parent of the item checked
+		       && (this.options.type == 'semi-dynamic' ? !$.ui.contains(this.element[0], itemElement) : true)
+		       //&& itemElement.parentNode == this.placeholder[0].parentNode // only rearrange items within the same container
+		       ) {
+
+			//YAST: If above children but below parent, then above last child. 
+			if (intersection == 2 && intUpParent && intUpParent[0] == itemElement) {
+			    intersection = 1;
+			    if (this.options.yastDebug) {
+				this.intData.push(" RULE: Above some element in parent -> place above parent");
+			    }
+			}
+			//If below children but above parent, then below parent
+			else if (intersection == 1 && intDownParent && intDownParent[0] == itemElement) {
+			    //Place below element
+			    intersection = 2;
+			    if (this.options.yastDebug) {
+				this.intData.push(" RULE: Below some element in parent -> place below parent");
+			    }
+			}
+			if (intersection == -1)  {
+			    //Above an element. Find its parent
+			    intUpParent = item.item.parent().closest(this.options.yastGroupItems);
+			    if (this.options.yastDebug && intUpParent) {
+				this.intData.push(" up-parent is " + this.options.yastItemName(intUpParent) + ", element is " + this.options.yastItemName(item.item));
+			    }
+			}
+			else if (intersection == -2) {
+			    //Below an element. Find its parent
+			    intDownParent = item.item.parent().closest(this.options.yastGroupItems);
+			    if (this.options.yastDebug && intDownParent) {
+				this.intData.push(" down-parent is " + this.options.yastItemName(intDownParent) + ", element is " + this.options.yastItemName(item.item));
+			    }
+			}
+			
+
+		    
+			//YAST: No intersection, but we have directional data
+			if (intersection <= 0) {
+			    //If we are below an element, and the previous element (below us) has the same parent
+			    //as us, then we are in the middle of two equally leveled elements and we should position
+			    //ourselves there
+			    if (intersection == -2 && belowElement && 
+				belowElement.parent().closest(this.options.yastGroupItems)[0] == intDownParent[0]) {
+
+				intersection = 2;
+				if (this.options.yastDebug) {
+				    this.intData.push("special rule! in the middle of two elements, but not touching\n" +
+						      " belowElement_parent=" + this.options.yastItemName(belowElement.parent().closest(this.options.yastGroupItems)) + ", my_parent=" + this.options.yastItemName(intDownParent));
+
+				}
+			    }
+			    else {
+				//If first element below that is not self
+				if (intersection == -1 && itemElement != this.currentItem[0]) {
+				    belowElement = item.item;
+				    if (this.options.yastDebug) {
+					this.intData.push(" belowElement. parent(" + this.options.yastItemName(belowElement.parent().closest(this.options.yastGroupItems)) + ')' );
+				    }
+				}
+				continue;
+			    }
+			}
 
 				this.direction = intersection == 1 ? "down" : "up";
 
 				if (this.options.tolerance == "pointer" || this._intersectsWithSides(item)) {
-					this._rearrange(event, item);
+				    //YAST: Debug info
+				    if (this.options.yastDebug) {
+					for (var x=0; x<this.intData.length; x++) {
+					    this.options.yastLog(this.intData[x]);
+					}
+					this.options.yastLog((this.direction == "down" ? "above" : "below") + 
+						" item " + i + 
+						" ( " + this.options.yastItemName(this.items[i].item) + " )");
+				    }
+
+				    //YAST: Force hard refresh
+				    this._rearrange(event, item, undefined, true);
+
+				    //YAST: Remember when we rearrange elements
+				    rearranged = true;
+
+				    //YAST: Debug
+				    if (this.options.yastDebug) {
+					this.options.yastLog("---------------------------");
+				    }
 				} else {
 					break;
 				}
@@ -310,6 +446,18 @@ $.widget("ui.sortable", $.ui.mouse, {
 				this._trigger("change", event, this._uiHash());
 				break;
 			}
+		}
+
+		//YAST: Only update helper position if no rearrange was done. The reason
+		//for this is that rearrange also updates helper position, and it has to be
+		//done there to avoid glitching when parent of an element changes 
+		//position
+		if (this.options.yastFixes && !rearranged) {
+		    if (this.options.yastDebug) {
+			this.options.yastLog(" begin helper=" + this.position.top + " placeholder=" + this.placeholder.offset().top);
+		    }
+		    if(!this.options.axis || this.options.axis != "y") this.helper[0].style.left = this.position.left+'px';
+		    if(!this.options.axis || this.options.axis != "x") this.helper[0].style.top = this.position.top+'px';
 		}
 
 		//Post events to containers
@@ -462,8 +610,83 @@ $.widget("ui.sortable", $.ui.mouse, {
 		}
 	},
 
+// 	_intersectsWithPointer: function(item) {
+// 
+// 		var isOverElementHeight = $.ui.isOverAxis(this.positionAbs.top + this.offset.click.top, item.top, item.height),
+// 			isOverElementWidth = $.ui.isOverAxis(this.positionAbs.left + this.offset.click.left, item.left, item.width),
+// 			isOverElement = isOverElementHeight && isOverElementWidth,
+// 			verticalDirection = this._getDragVerticalDirection(),
+// 			horizontalDirection = this._getDragHorizontalDirection();
+// 
+// 		if (!isOverElement)
+// 			return false;
+// 
+// 		return this.floating ?
+// 			( ((horizontalDirection && horizontalDirection == "right") || verticalDirection == "down") ? 2 : 1 )
+// 			: ( verticalDirection && (verticalDirection == "down" ? 2 : 1) );
+// 
+// 	},
+	//YAST fix
 	_intersectsWithPointer: function(item) {
+	    
+	    if (this.options.yastFixes) {
+		var top = item.top;
+		var height = item.height;
+		var x = this.positionAbs.top + this.offset.click.top; 
+		var bottom = top + height;
 
+		if (height == 0) {
+		    //Zero height elements 
+		    return false;
+		}
+
+		var helperTop = this.positionAbs.top;
+		var helperBottom = helperTop + this.helperProportions.height;
+		var itemMid = top + height/2;
+
+
+		if (this.options.yastDebug) {
+		    var dbgText = "_int: (" + this.options.yastItemName(item.item) + ") " + "hT=" + helperTop + ", hB=" + helperBottom + " item=[" + top + ", " + itemMid + ", " + (top + height) + "]";
+		}
+ 
+	    
+		if (helperBottom > top && helperBottom <= itemMid) {
+		    //Bottom of helper in top of element. Place above element
+		    if (this.options.yastDebug) {
+			this.intData.push(dbgText + " Helper-bottom in item-top -> above");
+		    }
+		    return 1;
+		}
+		else if (helperTop > top && helperTop <= itemMid) {
+		    //Top of helper in top of element. Place above element. Exception if we have travelled to far
+		    if (this.options.yastDebug) {
+			this.intData.push(dbgText + " Helper-top in item-top -> " + ((this.placeholderOffset.top < top) ? "special-rule below" : "above"));
+		    }
+		    return (this.placeholderOffset.top < top) ? 2 : 1;
+		}
+		else if (helperTop < bottom && helperTop > itemMid) {
+		    //Top of helper in bottom of element. Place below element
+		    if (this.options.yastDebug) {
+			this.intData.push(dbgText + " Helper-top in item-bottom -> below");
+		    }
+		    return 2;
+		}
+		else if (helperBottom < bottom && helperBottom > itemMid) {
+		    //Bottom of helper in bottom of element. Place below element
+		    if (this.options.yastDebug) {
+			this.intData.push(dbgText + " Helper-bottom in item-bottom -> " + ((this.placeholderOffset.top > top) ? "special-rule above" : "below"));
+		    }
+		    return (this.placeholderOffset.top > top) ? 1 : 2;
+		}
+		else {
+		    //No match. Return -1 if above element, -2 if below element
+		    if (this.options.yastDebug) {
+			this.intData.push(dbgText + " No match -> " + (helperTop > itemMid ? "below" : "above"));
+		    }
+		    return helperTop > itemMid ? -2 : -1;
+		}
+	    }
+	    else {
 		var isOverElementHeight = $.ui.isOverAxis(this.positionAbs.top + this.offset.click.top, item.top, item.height),
 			isOverElementWidth = $.ui.isOverAxis(this.positionAbs.left + this.offset.click.left, item.left, item.width),
 			isOverElement = isOverElementHeight && isOverElementWidth,
@@ -476,6 +699,7 @@ $.widget("ui.sortable", $.ui.mouse, {
 		return this.floating ?
 			( ((horizontalDirection && horizontalDirection == "right") || verticalDirection == "down") ? 2 : 1 )
 			: ( verticalDirection && (verticalDirection == "down" ? 2 : 1) );
+	    }
 
 	},
 
@@ -964,10 +1188,25 @@ $.widget("ui.sortable", $.ui.mouse, {
 		// 4. this lets only the last addition to the timeout stack through
 		this.counter = this.counter ? ++this.counter : 1;
 		var self = this, counter = this.counter;
-
-		window.setTimeout(function() {
+		
+		//YAST: Removed delay of following code!
+		var refresh = function() {
 			if(counter == self.counter) self.refreshPositions(!hardRefresh); //Precompute after each DOM insertion, NOT on mousemove
-		},0);
+		
+			//YASTFIX: Update helper location to avoid it jumping away from the cursor when its parent element moves
+			if (self.helper) {
+			    self.position = self._generatePosition(event);
+			    self.positionAbs = self._convertPositionTo("absolute");
+			    if (self.options.yastDebug) {
+				self.options.yastLog(" timer helper=" + self.position.top + " placeholder=" + self.placeholder.offset().top);
+			    }
+			    if(!self.options.axis || self.options.axis != "y") self.helper[0].style.left = self.position.left+'px';
+			    if(!self.options.axis || self.options.axis != "x") self.helper[0].style.top = self.position.top+'px';
+			}
+		}
+		this.options.yastFixes && 0 ?
+		    refresh() :
+		    window.setTimeout(refresh, 0);
 
 	},
 
@@ -986,6 +1225,11 @@ $.widget("ui.sortable", $.ui.mouse, {
 		if(this.helper[0] == this.currentItem[0]) {
 			for(var i in this._storedCSS) {
 				if(this._storedCSS[i] == 'auto' || this._storedCSS[i] == 'static') this._storedCSS[i] = '';
+			}
+			//YAST: Opera messes up if 'top' is not cleared
+			if (this.options.yastFixes) {
+			    this._storedCSS.top = '';
+			    this._storedCSS.left = '';
 			}
 			this.currentItem.css(this._storedCSS).removeClass("ui-sortable-helper");
 		} else {

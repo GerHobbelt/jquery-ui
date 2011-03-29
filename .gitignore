@@ -1,7 +1,9 @@
+*.ignore
 build/dist
 docs
 .project
 *~
 *.diff
 *.patch
+.svn
 .DS_Store
