@@ -118,7 +118,7 @@ function createBanner( files ) {
 grunt.initConfig({
 	pkg: "<json:package.json>",
 	files: {
-		dist: "<%= pkg.name %>-<%= pkg.version %>",
+		dist: "<%= pkg.name %>",
 		cdn: "<%= pkg.name %>-<%= pkg.version %>-cdn",
 		themes: "<%= pkg.name %>-themes-<%= pkg.version %>"
 	},
