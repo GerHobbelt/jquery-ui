@@ -10,6 +10,40 @@
  */
 (function( $, undefined ) {
 
+function _info ( name ) {
+	var parts = name.split( "." ),
+		_ = {
+			$			: "jQuery",
+			constructor	: parts.pop(),
+			context		: [].concat(parts),
+			namespace	: parts.shift()
+		};
+
+	// jQuery subclass API
+	if ( parts.length ) {
+		_.$ = _.context.shift();
+		_.namespace = parts.shift();
+		_.name = $.camelCase( parts.concat([_.constructor]).join( "-" ) );
+		_.fullName = (window[ _.$ ] === $ ? "" : _.$ + "-") + _.namespace + "-" + _.name;
+	}
+	// Default API
+	else {
+		_.name = _.constructor;
+		_.fullName = _.namespace + "-" + _.name;
+	}
+
+	// Set jQuery instance
+	_.$ = window[ _.$ ];
+
+	// Set widget context scope
+	for( var context=_.$, i=0, l=_.context.length ; i<l ; i++ ){
+		context = context[_.context[i]] || (context[_.context[i]] = {});
+	}
+	_.context = context;
+
+	return _;
+}
+
 var uuid = 0,
 	slice = Array.prototype.slice,
 	_cleanData = $.cleanData;
@@ -25,10 +59,11 @@ $.cleanData = function( elems ) {
 
 $.widget = function( name, base, prototype ) {
 	var fullName, existingConstructor, constructor, basePrototype,
-		namespace = name.split( "." )[ 0 ];
+		_ = _info(name),
+		namespace = _.namespace;
 
-	name = name.split( "." )[ 1 ];
-	fullName = namespace + "-" + name;
+	name = _.name;
+	fullName = _.fullName;
 
 	if ( !prototype ) {
 		prototype = base;
@@ -40,9 +75,9 @@ $.widget = function( name, base, prototype ) {
 		return !!$.data( elem, fullName );
 	};
 
-	$[ namespace ] = $[ namespace ] || {};
-	existingConstructor = $[ namespace ][ name ];
-	constructor = $[ namespace ][ name ] = function( options, element ) {
+	existingConstructor = _.context[ _.constructor ];
+	existingConstructor = (existingConstructor = _.context[ _.constructor ]) && existingConstructor._$ === _.$ ? existingConstructor : undefined;
+	constructor = _.context[ _.constructor ] = function( options, element ) {
 		// allow instantiation without "new" keyword
 		if ( !this._createWidget ) {
 			return new constructor( options, element );
@@ -57,6 +92,8 @@ $.widget = function( name, base, prototype ) {
 	// extend with the existing constructor to carry over any static properties
 	$.extend( constructor, existingConstructor, {
 		version: prototype.version,
+		// remember jQuery instance context
+		_$: _.$,
 		// copy the object used to create the prototype in case we need to
 		// redefine the widget later
 		_proto: $.extend( {}, prototype ),
@@ -86,11 +123,15 @@ $.widget = function( name, base, prototype ) {
 
 					this._super = _super;
 					this._superApply = _superApply;
+					/* DEPRECATED: Backward compatible API */
+					this.Inherited = _superApply;
 
 					returnValue = value.apply( this, arguments );
 
 					this._super = __super;
 					this._superApply = __superApply;
+					/* DEPRECATED: Backward compatible API */
+					this.Inherited = __superApply;
 
 					return returnValue;
 				};
@@ -130,7 +171,7 @@ $.widget = function( name, base, prototype ) {
 		base._childConstructors.push( constructor );
 	}
 
-	$.widget.bridge( name, constructor );
+	$.widget.bridge( name, constructor, _.$ );
 };
 
 $.widget.extend = function( target ) {
@@ -159,9 +200,9 @@ $.widget.extend = function( target ) {
 	return target;
 };
 
-$.widget.bridge = function( name, object ) {
+$.widget.bridge = function( name, object, _$ ) {
 	var fullName = object.prototype.widgetFullName;
-	$.fn[ name ] = function( options ) {
+	_$.fn[ name ] = function( options ) {
 		var isMethodCall = typeof options === "string",
 			args = slice.call( arguments, 1 ),
 			returnValue = this;
@@ -179,7 +220,12 @@ $.widget.bridge = function( name, object ) {
 					return $.error( "cannot call methods on " + name + " prior to initialization; " +
 						"attempted to call method '" + options + "'" );
 				}
-				if ( !$.isFunction( instance[options] ) || options.charAt( 0 ) === "_" ) {
+				/* DEPRECATED: Backward compatible API */
+				if ( options === "Instance" ) {
+					returnValue = instance;
+					return false;
+				}
+				if ( !$.isFunction( instance[options] ) || options.charAt( 0 ) === "_" || /* DEPRECATED: Backward compatible API */ options === "Proxy" ) {
 					return $.error( "no such method '" + options + "' for " + name + " widget instance" );
 				}
 				methodValue = instance[ options ].apply( instance, args );
@@ -205,7 +251,7 @@ $.widget.bridge = function( name, object ) {
 	};
 };
 
-$.Widget = function( /* options, element */ ) {};
+$.Widget = function( options, element ) {};
 $.Widget._childConstructors = [];
 
 $.Widget.prototype = {
