@@ -71,16 +71,19 @@ $.widget( "ui.progressbar", {
 			val = newValue;
 		}
 
+		this.indeterminate = val === false;
+
 		// sanitize value
 		if ( typeof val !== "number" ) {
 			val = 0;
 		}
-		return Math.min( this.options.max, Math.max( this.min, val ) );
+		return this.indeterminate ? false : Math.min( this.options.max, Math.max( this.min, val ) );
 	},
 
 	_setOptions: function( options ) {
 		var val = options.value;
 
+		// Ensure "value" option is set after other values (like max)
 		delete options.value;
 		this._super( options );
 
@@ -106,26 +109,42 @@ $.widget( "ui.progressbar", {
 	},
 
 	_percentage: function() {
-		return 100 * this.options.value / this.options.max;
+		return this.indeterminate ? 100 : 100 * this.options.value / this.options.max;
 	},
 
 	_refreshValue: function() {
-		var percentage = this._percentage();
-
-		if ( this.oldValue !== this.options.value ) {
-			this.oldValue = this.options.value;
-			this._trigger( "change" );
-		}
-		if ( this.options.value === this.options.max ) {
-			this._trigger( "complete" );
-		}
+		var value = this.options.value,
+			percentage = this._percentage();
 
 		this.valueDiv
-			.toggle( this.options.value > this.min )
-			.toggleClass( "ui-corner-right", this.options.value === this.options.max )
+			.toggle( this.indeterminate || value > this.min )
+			.toggleClass( "ui-corner-right", value === this.options.max )
+			.toggleClass( "ui-progressbar-indeterminate", this.indeterminate )
 			.width( percentage.toFixed(0) + "%" );
-		this.element.attr( "aria-valuemax", this.options.max );
-		this.element.attr( "aria-valuenow", this.options.value );
+
+		if ( this.indeterminate ) {
+			this.element.removeAttr( "aria-valuemax" ).removeAttr( "aria-valuenow" );
+			if ( !this.overlayDiv ) {
+				this.overlayDiv = $( "<div class='ui-progressbar-overlay'></div>" ).appendTo( this.valueDiv );
+			}
+		} else {
+			this.element.attr({
+				"aria-valuemax": this.options.max,
+				"aria-valuenow": value
+			});
+			if ( this.overlayDiv ) {
+				this.overlayDiv.remove();
+				this.overlayDiv = null;
+			}
+		}
+
+		if ( this.oldValue !== value ) {
+			this.oldValue = value;
+			this._trigger( "change" );
+		}
+		if ( value === this.options.max ) {
+			this._trigger( "complete" );
+		}
 	}
 });
 

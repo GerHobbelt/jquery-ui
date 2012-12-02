@@ -15,6 +15,7 @@ var versions = {
 		"Core": "core/core.html",
 		"Datepicker": "datepicker/datepicker.html",
 		"Dialog": "dialog/dialog.html",
+		"Dialog_deprecated": "dialog/dialog_deprecated.html",
 		"Draggable": "draggable/draggable.html",
 		"Droppable": "droppable/droppable.html",
 		"Effects": "effects/effects.html",
@@ -53,7 +54,7 @@ function submit( commit, tests, configFile, version, done ) {
 		runMax: config.runMax,
 		"runNames[]": Object.keys( tests ),
 		"runUrls[]": testUrls,
-		"browserSets[]": [ "popular-no-ie6" ]
+		"browserSets[]": config.browserSets
 	});
 }
 
