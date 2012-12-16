@@ -119,6 +119,7 @@ $.widget( "ui.slider", $.ui.mouse, {
 
 		this._on( this.handles, {
 			keydown: function( event ) {
+				/*jshint maxcomplexity:25*/
 				var allowed, curVal, newVal, step,
 					index = $( event.target ).data( "ui-slider-handle-index" );
 
@@ -255,7 +256,7 @@ $.widget( "ui.slider", $.ui.mouse, {
 			.focus();
 
 		offset = closestHandle.offset();
-		mouseOverHandle = !$( event.target ).parents().andSelf().is( ".ui-slider-handle" );
+		mouseOverHandle = !$( event.target ).parents().addBack().is( ".ui-slider-handle" );
 		this._clickOffset = mouseOverHandle ? { left: 0, top: 0 } : {
 			left: event.pageX - offset.left - ( closestHandle.width() / 2 ),
 			top: event.pageY - offset.top -
