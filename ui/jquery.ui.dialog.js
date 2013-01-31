@@ -207,6 +207,7 @@ $.widget( "ui.dialog", {
 	},
 
 	open: function() {
+		var that = this;
 		if ( this._isOpen ) {
 			if ( this._moveToTop() ) {
 				this._focusTabbable();
@@ -220,13 +221,13 @@ $.widget( "ui.dialog", {
 		this._position();
 		this._createOverlay();
 		this._moveToTop( null, true );
-		this._show( this.uiDialog, this.options.show );
-
-		this._focusTabbable();
+		this._show( this.uiDialog, this.options.show, function() {
+			that._focusTabbable();
+			that._trigger("focus");
+		});
 
 		this._isOpen = true;
 		this._trigger("open");
-		this._trigger("focus");
 	},
 
 	_focusTabbable: function() {
@@ -679,7 +680,10 @@ $.widget( "ui.dialog", {
 				if ( $.ui.dialog.overlayInstances ) {
 					this._on( this.document, {
 						focusin: function( event ) {
-							if ( !$( event.target ).closest(".ui-dialog").length ) {
+							if ( !$( event.target ).closest(".ui-dialog").length &&
+									// TODO: Remove hack when datepicker implements
+									// the .ui-front logic (#8989)
+									!$( event.target ).closest(".ui-datepicker").length ) {
 								event.preventDefault();
 								$(".ui-dialog:visible:last .ui-dialog-content")
 									.data("ui-dialog")._focusTabbable();
@@ -692,7 +696,7 @@ $.widget( "ui.dialog", {
 
 		this.overlay = $("<div>")
 			.addClass("ui-widget-overlay ui-front")
-			.appendTo( this.document[0].body );
+			.appendTo( this._appendTo() );
 		this._on( this.overlay, {
 			mousedown: "_keepFocus"
 		});
@@ -704,11 +708,15 @@ $.widget( "ui.dialog", {
 			return;
 		}
 
-		$.ui.dialog.overlayInstances--;
-		if ( !$.ui.dialog.overlayInstances ) {
-			this._off( this.document, "focusin" );
+		if ( this.overlay ) {
+			$.ui.dialog.overlayInstances--;
+
+			if ( !$.ui.dialog.overlayInstances ) {
+				this._off( this.document, "focusin" );
+			}
+			this.overlay.remove();
+			this.overlay = null;
 		}
-		this.overlay.remove();
 	}
 });
 
