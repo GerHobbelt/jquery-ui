@@ -24,8 +24,8 @@ test("init", function() {
 	$('<div></div>').appendTo('body').remove().dialog().remove();
 	ok(true, '.dialog() called on disconnected DOMElement - removed');
 
-	el = $('<div></div>').dialog();
-	var foo = el.dialog("option", "foo");
+	var el = $('<div></div>').dialog();
+	el.dialog("option", "foo");
 	el.remove();
 	ok(true, 'arbitrary option getter after init');
 
@@ -34,65 +34,67 @@ test("init", function() {
 });
 
 test("destroy", function() {
-	expect( 4 );
+	expect( 7 );
 
-	$("<div></div>").appendTo('body').dialog().dialog("destroy").remove();
-	ok(true, '.dialog("destroy") called on element');
+	$( "#dialog1, #form-dialog" ).hide();
+	domEqual( "#dialog1", function() {
+		var dialog = $( "#dialog1" ).dialog().dialog( "destroy" );
+		equal( dialog.parent()[ 0 ], $( "#qunit-fixture" )[ 0 ] );
+		equal( dialog.index(), 0 );
+	});
+	domEqual( "#form-dialog", function() {
+		var dialog = $( "#form-dialog" ).dialog().dialog( "destroy" );
+		equal( dialog.parent()[ 0 ], $( "#qunit-fixture" )[ 0 ] );
+		equal( dialog.index(), 2 );
+	});
 
-	$([]).dialog().dialog("destroy").remove();
-	ok(true, '.dialog("destroy") called on empty collection');
-
-	$('<div></div>').dialog().dialog("destroy").remove();
-	ok(true, '.dialog("destroy") called on disconnected DOMElement');
-
-	var expected = $('<div></div>').dialog(),
-		actual = expected.dialog('destroy');
-	equal(actual, expected, 'destroy is chainable');
+	// Ensure dimensions are restored (#8119)
+	$( "#dialog1" ).show().css({
+		width: "400px",
+		minHeight: "100px",
+		height: "200px"
+	});
+	domEqual( "#dialog1", function() {
+		$( "#dialog1" ).dialog().dialog( "destroy" );
+	});
 });
 
-test("enable", function() {
-	expect( 3 );
-
-	var expected = $('<div></div>').dialog(),
-		actual = expected.dialog('enable');
-	equal(actual, expected, 'enable is chainable');
-
-	el = $('<div></div>').dialog({ disabled: true });
-	el.dialog('enable');
-	equal(el.dialog('option', 'disabled'), false, 'enable method sets disabled option to false');
-	ok(!dlg().hasClass('ui-dialog-disabled'), 'enable method removes ui-dialog-disabled class from ui-dialog element');
+test("#4980: Destroy should place element back in original DOM position", function(){
+	expect( 2 );
+	var container = $('<div id="container"><div id="modal">Content</div></div>'),
+		modal = container.find('#modal');
+	modal.dialog();
+	ok(!$.contains(container[0], modal[0]), 'dialog should move modal element to outside container element');
+	modal.dialog('destroy');
+	ok($.contains(container[0], modal[0]), 'dialog(destroy) should place element back in original DOM position');
 });
 
-test("disable", function() {
-	expect( 3 );
-
-	var expected = $('<div></div>').dialog(),
-		actual = expected.dialog('disable');
-	equal(actual, expected, 'disable is chainable');
-
-	el = $('<div></div>').dialog({ disabled: false });
-	el.dialog('disable');
-	equal(el.dialog('option', 'disabled'), true, 'disable method sets disabled option to true');
-	ok(dlg().hasClass('ui-dialog-disabled'), 'disable method adds ui-dialog-disabled class to ui-dialog element');
+test( "enable/disable disabled", function() {
+	expect( 2 );
+	var el = $( "<div></div>" ).dialog();
+	el.dialog( "disable" );
+	equal(el.dialog( "option", "disabled" ), false, "disable method doesn't do anything" );
+	ok( !el.dialog( "widget" ).hasClass( "ui-dialog-disabled" ), "disable method doesn't add ui-dialog-disabled class" );
 });
 
 test("close", function() {
 	expect( 3 );
 
-	var expected = $('<div></div>').dialog(),
+	var el,
+		expected = $('<div></div>').dialog(),
 		actual = expected.dialog('close');
 	equal(actual, expected, 'close is chainable');
 
 	el = $('<div></div>').dialog();
-	ok(dlg().is(':visible') && !dlg().is(':hidden'), 'dialog visible before close method called');
+	ok(el.dialog('widget').is(':visible') && !el.dialog('widget').is(':hidden'), 'dialog visible before close method called');
 	el.dialog('close');
-	ok(dlg().is(':hidden') && !dlg().is(':visible'), 'dialog hidden after close method called');
+	ok(el.dialog('widget').is(':hidden') && !el.dialog('widget').is(':visible'), 'dialog hidden after close method called');
 });
 
 test("isOpen", function() {
 	expect(4);
 
-	el = $('<div></div>').dialog();
+	var el = $('<div></div>').dialog();
 	equal(el.dialog('isOpen'), true, "dialog is open after init");
 	el.dialog('close');
 	equal(el.dialog('isOpen'), false, "dialog is closed");
@@ -106,36 +108,80 @@ test("isOpen", function() {
 });
 
 test("moveToTop", function() {
-	expect( 3 );
-
-	var d1, d2, dlg1, dlg2,
-		expected = $('<div></div>').dialog(),
-		actual = expected.dialog('moveToTop');
-	equal(actual, expected, 'moveToTop is chainable');
-
-	d1 = $('<div></div>').dialog();
-	dlg1 = d1.parents('.ui-dialog');
-	d1.dialog('close');
-	d1.dialog('open');
-	d2 = $('<div></div>').dialog();
-	dlg2 = d2.parents('.ui-dialog');
-	d2.dialog('close');
-	d2.dialog('open');
-	ok(dlg1.css('zIndex') < dlg2.css('zIndex'), 'dialog 1 under dialog 2 before moveToTop method called');
-	d1.dialog('moveToTop');
-	ok(dlg1.css('zIndex') > dlg2.css('zIndex'), 'dialog 1 above dialog 2 after moveToTop method called');
+	expect( 5 );
+	function order() {
+		var actual = $( ".ui-dialog" ).map(function() {
+			return +$( this ).find( ".ui-dialog-content" ).attr( "id" ).replace( /\D+/, "" );
+		}).get().reverse();
+		deepEqual( actual, $.makeArray( arguments ) );
+	}
+	var dialog1, dialog2,
+		focusOn = "dialog1";
+	dialog1 = $( "#dialog1" ).dialog({
+		focus: function() {
+			equal( focusOn, "dialog1" );
+		}
+	});
+	focusOn = "dialog2";
+	dialog2 = $( "#dialog2" ).dialog({
+		focus: function() {
+			equal( focusOn, "dialog2" );
+		}
+	});
+	order( 2, 1 );
+	focusOn = "dialog1";
+	dialog1.dialog( "moveToTop" );
+	order( 1, 2 );
 });
 
 test("open", function() {
 	expect( 3 );
-	var expected = $('<div></div>').dialog(),
+	var el,
+		expected = $('<div></div>').dialog(),
 		actual = expected.dialog('open');
 	equal(actual, expected, 'open is chainable');
 
 	el = $('<div></div>').dialog({ autoOpen: false });
-	ok(dlg().is(':hidden') && !dlg().is(':visible'), 'dialog hidden before open method called');
+	ok(el.dialog('widget').is(':hidden') && !el.dialog('widget').is(':visible'), 'dialog hidden before open method called');
 	el.dialog('open');
-	ok(dlg().is(':visible') && !dlg().is(':hidden'), 'dialog visible after open method called');
+	ok(el.dialog('widget').is(':visible') && !el.dialog('widget').is(':hidden'), 'dialog visible after open method called');
+});
+
+test("#6137: dialog('open') causes form elements to reset on IE7", function() {
+	expect(2);
+
+	var d1 = $('<form><input type="radio" name="radio" id="a" value="a" checked="checked"></input>' +
+				'<input type="radio" name="radio" id="b" value="b">b</input></form>').appendTo( "body" ).dialog({autoOpen: false});
+
+	d1.find('#b').prop( "checked", true );
+	equal(d1.find('input:checked').val(), 'b', "checkbox b is checked");
+
+	d1.dialog('open');
+	equal(d1.find('input:checked').val(), 'b', "checkbox b is checked");
+
+	d1.remove();
+});
+
+test("#5531: dialog width should be at least minWidth on creation", function () {
+	expect( 4 );
+	var el = $('<div></div>').dialog({
+			width: 200,
+			minWidth: 300
+		});
+
+	equal(el.dialog('option', 'width'), 300, "width is minWidth");
+	el.dialog('option', 'width', 200);
+	equal(el.dialog('option', 'width'), 300, "width unchanged when set to < minWidth");
+	el.dialog('option', 'width', 320);
+	equal(el.dialog('option', 'width'), 320, "width changed if set to > minWidth");
+	el.remove();
+
+	el = $('<div></div>').dialog({
+			minWidth: 300
+		});
+	ok(el.dialog('option', 'width') >=  300, "width is at least 300");
+	el.remove();
+
 });
 
 })(jQuery);
