@@ -74,10 +74,13 @@ $.widget( "ui.draggable", $.ui.interaction, {
 	/** interaction interface **/
 
 	_isValidTarget: function( element ) {
-		var handle = this.options.handle ? element.is( this.options.handle ) : true,
-			exclude = this.options.exclude ? element.is( this.options.exclude ) : false;
+	
+		var handle = this.options.handle ? element.is( this.element.find( this.options.handle ) ) : true,
+			exclude = this.options.exclude ? element.is( this.element.find( this.options.exclude ) ) : false;
+			
 
-		return ( handle && !exclude );
+		// Enforce boolean
+		return !!( handle && !exclude );
 	},
 
 	_start: function( event, pointerPosition ) {
@@ -85,11 +88,13 @@ $.widget( "ui.draggable", $.ui.interaction, {
 
 		// Reset
 		this.dragDimensions = null;
-
+		
 		// The actual dragging element, should always be a jQuery object
 		this.dragEl = ( this.options.helper === true || typeof this.options.helper === "function" ) ?
 			this._createHelper( pointerPosition ) :
 			this.element;
+			
+			
 
 		// _createHelper() ensures that helpers are in the correct position
 		// in the DOM, but we need to handle appendTo when there is no helper
@@ -214,7 +219,7 @@ $.widget( "ui.draggable", $.ui.interaction, {
 		// If user cancels stop, leave helper there
 		if ( this._trigger( "stop", event, this._fullHash( pointerPosition ) ) !== false ) {
 			if ( this.options.helper ) {
-				delete this.element.data( "uiDraggable" ).helper;
+				delete this.element.data( "ui-draggable" ).helper;
 				this.dragEl.remove();
 			}
 			this._resetDomPosition();
@@ -248,7 +253,7 @@ $.widget( "ui.draggable", $.ui.interaction, {
 			helper.appendTo( this._appendToEl() || this.document[0].body );
 		}
 
-		this.element.data( "uiDraggable" ).helper = helper;
+		this.element.data( "ui-draggable" ).helper = helper;
 
 		this._cacheDragDimensions( helper );
 
@@ -447,18 +452,16 @@ $.widget( "ui.draggable", $.ui.interaction, {
 	_blockFrames: function() {
 
 		this.iframeBlocks = this.document.find( "iframe" ).map(function() {
-			var iframe = $( this ),
-				iframeOffset = iframe.offset();
+			var iframe = $( this );
 
 			return $( "<div>" )
 				.css({
 					position: "absolute",
 					width: iframe.outerWidth(),
-					height: iframe.outerHeight(),
-					top: iframeOffset.top,
-					left: iframeOffset.left
+					height: iframe.outerHeight()
 				})
-				.appendTo( iframe.parent() )[0];
+				.appendTo( iframe.parent() )
+				.offset( iframe.offset() )[0];
 		});
 	},
 
@@ -566,10 +569,16 @@ if ( $.uiBackCompat !== false ) {
 	// appendTo 'parent' value
 	$.widget( "ui.draggable", $.ui.draggable, {
 
+		// Helper passed in since _createHelper calls this before dragEl is set
 		_appendToEl: function() {
 
 			var el = this.options.appendTo;
-
+			
+			// This should only happen via _createHelper
+			if ( el === null ) {
+				return this.element.parent();
+			}
+			
 			if ( el === "parent" ) {
 				el = this.dragEl.parent();
 			}
@@ -981,7 +990,6 @@ if ( $.uiBackCompat !== false ) {
 
 	});
 
-	// TODO: need droppable working
 	// scope option
 	$.widget( "ui.draggable", $.ui.draggable, {
 		options: {
@@ -1254,7 +1262,6 @@ if ( $.uiBackCompat !== false ) {
 		},
 
 		_getParentOffset: function() {
-
 			//Get the offsetParent and cache its position
 			this.offsetParent = this.dragEl.offsetParent();
 			var po = this.offsetParent.offset();

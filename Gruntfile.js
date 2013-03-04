@@ -8,6 +8,7 @@ var
 		"jquery.ui.core.js",
 		"jquery.ui.widget.js",
 		"jquery.ui.mouse.js",
+		"jquery.ui.interaction.js",
 		"jquery.ui.draggable.js",
 		"jquery.ui.droppable.js",
 		"jquery.ui.resizable.js",
@@ -82,7 +83,7 @@ uiFiles.forEach(function( file ) {
 grunt.loadNpmTasks( "grunt-css" );
 grunt.loadNpmTasks( "grunt-html" );
 grunt.loadNpmTasks( "grunt-compare-size" );
-grunt.loadNpmTasks( "grunt-junit" );
+//grunt.loadNpmTasks( "grunt-junit" );
 grunt.loadNpmTasks( "grunt-git-authors" );
 // local testswarm and build tasks
 grunt.loadTasks( "build/tasks" );
