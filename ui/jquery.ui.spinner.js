@@ -105,6 +105,7 @@ $.widget( "ui.spinner", {
             return;
          }
 
+         this._stop();
          this._refresh();
          if ( this.previous !== this.element.val() ) {
             this._trigger( "change", event );
