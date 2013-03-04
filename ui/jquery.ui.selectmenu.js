@@ -137,7 +137,7 @@ $.widget( "ui.selectmenu", {
 			focus: function( event, ui ) {
 				var item = ui.item.data( "ui-selectmenu-item" );
 				// prevent inital focus from firing and checks if its a newly focused item
-				if ( that.focus !== undefined && item.index !== that.focus ) {
+				if ( !that.isOpen && that.focus !== undefined && item.index !== that.focus ) {
 					that._trigger( "focus", event, { item: item } );
 					if ( !that.isOpen ) {
 						that._select( item, event );
@@ -146,7 +146,7 @@ $.widget( "ui.selectmenu", {
 				that.focus = item.index;
 
 				// Set ARIA active descendant
-				that.button.attr( "aria-activedescendant", that.menuItems.eq( item.index ).find( "a" ).attr( "id" ) );
+				that.button.attr( "aria-activedescendant", that.menuItems.eq( item.index ).attr( "id" ) );
 			},
 			// set ARIA role
 			role: "listbox"
@@ -172,13 +172,12 @@ $.widget( "ui.selectmenu", {
 			this._renderMenu( this.menu, this.items );
 
 			this.menu.menu( "refresh" );
-			this.menuItems = this.menu.find( "li" ).not( ".ui-selectmenu-optgroup" );
+			this.menuItems = this.menu.find( "li" ).not( ".ui-selectmenu-optgroup" ).find( "a" );
 
-			// select current item
 			item = this._getSelectedItem();
 			// make sure menu is selected item aware
 			this.menu.menu( "focus", null, item );
-			this._setSelected( item.data( "ui-selectmenu-item" ) );
+			this._setAria( item.data( "ui-selectmenu-item" ) );
 
 			// set disabled state
 			this._setOption( "disabled", this._getCreateOptions().disabled );
@@ -207,9 +206,7 @@ $.widget( "ui.selectmenu", {
 
 		// check if we have an item to select
 		if ( this.menuItems ) {
-			var id = this._getSelectedItem().find( "a" ).attr( "id" );
-			this.button.attr( "aria-activedescendant", id );
-			this.menu.attr( "aria-activedescendant", id );
+			this.menu.menu( "focus", null, this._getSelectedItem() );
 		}
 
 		this._trigger( "close", event );
@@ -270,7 +267,7 @@ $.widget( "ui.selectmenu", {
 	},
 
 	_getSelectedItem: function() {
-		return this.menuItems.eq( this.element[ 0 ].selectedIndex );
+		return this.menuItems.eq( this.element[ 0 ].selectedIndex ).parent( "li" );
 	},
 
 	_toggle: function( event ) {
@@ -365,7 +362,8 @@ $.widget( "ui.selectmenu", {
 		var oldIndex = this.element[ 0 ].selectedIndex;
 		// change native select element
 		this.element[ 0 ].selectedIndex = item.index;
-		this._setSelected( item );
+		this._setText( this.buttonText, item.label );
+		this._setAria( item );
 		this._trigger( "select", event, { item: item } );
 
 		if ( item.index !== oldIndex ) {
@@ -373,12 +371,18 @@ $.widget( "ui.selectmenu", {
 		}
 	},
 
-	_setSelected: function( item ) {
-		this._setText( this.buttonText, item.label );
+	_setAria: function( item ) {
+		var link = this.menuItems.eq( item.index ),
+			id = link.attr( "id" );
+
 		// change ARIA attr
-		this.menuItems.find( "a" ).attr( "aria-selected", false );
-		this.menuItems.eq( item.index ).find( "a" ).attr( "aria-selected", true );
-		this.button.attr( "aria-labelledby", this.menuItems.eq( item.index ).find( "a" ).attr( "id" ) );
+		this.menuItems.attr( "aria-selected", false );
+		link.attr( "aria-selected", true );
+		this.button.attr({
+			"aria-labelledby": id,
+			"aria-activedescendant": id
+		});
+		this.menu.attr( "aria-activedescendant", id );
 	},
 
 	_setOption: function( key, value ) {
