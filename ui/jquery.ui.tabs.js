@@ -102,7 +102,8 @@ $.widget( "ui.tabs", {
 	_initialActive: function() {
 		var active = this.options.active,
 			collapsible = this.options.collapsible,
-			locationHash = location.hash.substring( 1 );
+			locationHash = location.hash.substring( 1 ),
+			active_hash;
 
 		if ( active === null ) {
 			// check the fragment identifier in the URL
@@ -126,11 +127,22 @@ $.widget( "ui.tabs", {
 			}
 		}
 
-		// handle numbers: negative, out of range
+		// handle hash-string or numbers: negative, out of range
 		if ( active !== false ) {
+			active_hash = active;
 			active = this.tabs.index( this.tabs.eq( active ) );
 			if ( active === -1 ) {
-				active = collapsible ? false : 0;
+				// check a string: hash match
+				this.tabs.each(function( i, tab ) {
+					console.log("tab aria controls: ", $( tab ).attr( "aria-controls" ));
+					if ( $( tab ).attr( "aria-controls" ) === active_hash ) {
+						active = i;
+						return false;
+					}
+				});
+				if ( active === -1 ) {
+					active = collapsible ? false : 0;
+				}
 			}
 		}
 
