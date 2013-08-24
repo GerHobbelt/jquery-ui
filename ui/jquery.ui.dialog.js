@@ -7,17 +7,25 @@
  * http://jquery.org/license
  *
  * http://api.jqueryui.com/dialog/
- *
- * Depends:
- *	jquery.ui.core.js
- *	jquery.ui.widget.js
- *  jquery.ui.button.js
- *	jquery.ui.draggable.js
- *	jquery.ui.mouse.js
- *	jquery.ui.position.js
- *	jquery.ui.resizable.js
  */
-(function( $, undefined ) {
+(function( factory ) {
+	if ( typeof define === "function" && define.amd ) {
+		// AMD. Register as an anonymous module.
+		define([
+			"jquery",
+			"./jquery.ui.core",
+			"./jquery.ui.widget",
+			"./jquery.ui.button",
+			"./jquery.ui.draggable",
+			"./jquery.ui.mouse",
+			"./jquery.ui.position",
+			"./jquery.ui.resizable"
+		], factory );
+	} else {
+		// Browser globals
+		factory( jQuery );
+	}
+}(function( $ ) {
 
 var sizeRelatedOptions = {
 		buttons: true,
@@ -781,4 +789,4 @@ $.widget( "ui.dialog", {
 	}
 });
 
-}( jQuery ) );
+}));

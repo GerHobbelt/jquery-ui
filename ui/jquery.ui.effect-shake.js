@@ -7,11 +7,19 @@
  * http://jquery.org/license
  *
  * http://api.jqueryui.com/shake-effect/
- *
- * Depends:
- *	jquery.ui.effect.js
  */
-(function( $, undefined ) {
+(function( factory ) {
+	if ( typeof define === "function" && define.amd ) {
+		// AMD. Register as an anonymous module.
+		define([
+			"jquery",
+			"./jquery.ui.effect"
+		], factory );
+	} else {
+		// Browser globals
+		factory( jQuery );
+	}
+}(function( $ ) {
 
 $.effects.effect.shake = function( o, done ) {
 
@@ -71,4 +79,4 @@ $.effects.effect.shake = function( o, done ) {
 
 };
 
-})(jQuery);
+}));

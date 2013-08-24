@@ -8,9 +8,17 @@
  *
  * http://api.jqueryui.com/category/ui-core/
  */
-(function( $, undefined ) {
+(function( factory ) {
+	if ( typeof define === "function" && define.amd ) {
+		// AMD. Register as an anonymous module.
+		define( [ "jquery" ], factory );
+	} else {
+		// Browser globals
+		factory( jQuery );
+	}
+}(function( $ ) {
 
-var uuid = 0,
+var coreUuid = 0,
 	runiqueId = /^ui-id-\d+$/;
 
 // $.ui might exist from components with no dependencies, e.g., $.ui.position
@@ -75,7 +83,7 @@ $.fn.extend({
 	uniqueId: function() {
 		return this.each(function() {
 			if ( !this.id ) {
-				this.id = "ui-id-" + (++uuid);
+				this.id = "ui-id-" + (++coreUuid);
 			}
 		});
 	},
@@ -290,4 +298,4 @@ $.ui.plugin = {
 	}
 };
 
-})( jQuery );
+}));

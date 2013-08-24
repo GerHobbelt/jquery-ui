@@ -8,7 +8,15 @@
  *
  * http://api.jqueryui.com/position/
  */
-(function( $, undefined ) {
+(function( factory ) {
+	if ( typeof define === "function" && define.amd ) {
+		// AMD. Register as an anonymous module.
+		define( [ "jquery" ], factory );
+	} else {
+		// Browser globals
+		factory( jQuery );
+	}
+}(function( $ ) {
 
 $.ui = $.ui || {};
 
@@ -16,8 +24,8 @@ var cachedScrollbarWidth,
 	max = Math.max,
 	abs = Math.abs,
 	round = Math.round,
-	rhorizontal = /left|center|right/,
-	rvertical = /top|center|bottom/,
+	positionRHorizontal = /left|center|right/,
+	positionRVertical = /top|center|bottom/,
 	roffset = /[\+\-]\d+(\.[\d]+)?%?/,
 	rposition = /^\w+/,
 	rpercent = /%$/,
@@ -148,14 +156,14 @@ $.fn.position = function( options ) {
 			verticalOffset;
 
 		if ( pos.length === 1) {
-			pos = rhorizontal.test( pos[ 0 ] ) ?
+			pos = positionRHorizontal.test( pos[ 0 ] ) ?
 				pos.concat( [ "center" ] ) :
-				rvertical.test( pos[ 0 ] ) ?
+				positionRVertical.test( pos[ 0 ] ) ?
 					[ "center" ].concat( pos ) :
 					[ "center", "center" ];
 		}
-		pos[ 0 ] = rhorizontal.test( pos[ 0 ] ) ? pos[ 0 ] : "center";
-		pos[ 1 ] = rvertical.test( pos[ 1 ] ) ? pos[ 1 ] : "center";
+		pos[ 0 ] = positionRHorizontal.test( pos[ 0 ] ) ? pos[ 0 ] : "center";
+		pos[ 1 ] = positionRVertical.test( pos[ 1 ] ) ? pos[ 1 ] : "center";
 
 		// calculate offsets
 		horizontalOffset = roffset.exec( pos[ 0 ] );
@@ -494,4 +502,4 @@ $.ui.position = {
 	testElementParent.removeChild( testElement );
 })();
 
-}( jQuery ) );
+}));

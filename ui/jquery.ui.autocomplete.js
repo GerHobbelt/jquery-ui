@@ -7,14 +7,22 @@
  * http://jquery.org/license
  *
  * http://api.jqueryui.com/autocomplete/
- *
- * Depends:
- *	jquery.ui.core.js
- *	jquery.ui.widget.js
- *	jquery.ui.position.js
- *	jquery.ui.menu.js
  */
-(function( $, undefined ) {
+(function( factory ) {
+	if ( typeof define === "function" && define.amd ) {
+		// AMD. Register as an anonymous module.
+		define([
+			"jquery",
+			"./jquery.ui.core",
+			"./jquery.ui.widget",
+			"./jquery.ui.position",
+			"./jquery.ui.menu"
+		], factory );
+	} else {
+		// Browser globals
+		factory( jQuery );
+	}
+}(function( $ ) {
 
 $.widget( "ui.autocomplete", {
 	version: "@VERSION",
@@ -602,4 +610,4 @@ $.widget( "ui.autocomplete", $.ui.autocomplete, {
 	}
 });
 
-}( jQuery ));
+}));

@@ -7,12 +7,20 @@
  * http://jquery.org/license
  *
  * http://api.jqueryui.com/button/
- *
- * Depends:
- *	jquery.ui.core.js
- *	jquery.ui.widget.js
  */
-(function( $, undefined ) {
+(function( factory ) {
+	if ( typeof define === "function" && define.amd ) {
+		// AMD. Register as an anonymous module.
+		define([
+			"jquery",
+			"./jquery.ui.core",
+			"./jquery.ui.widget"
+		], factory );
+	} else {
+		// Browser globals
+		factory( jQuery );
+	}
+}(function( $ ) {
 
 var lastActive, startXPos, startYPos, clickDragged,
 	baseClasses = "ui-button ui-widget ui-state-default ui-corner-all",
@@ -413,4 +421,4 @@ $.widget( "ui.buttonset", {
 	}
 });
 
-}( jQuery ) );
+}));

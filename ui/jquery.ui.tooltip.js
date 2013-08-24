@@ -7,13 +7,21 @@
  * http://jquery.org/license
  *
  * http://api.jqueryui.com/tooltip/
- *
- * Depends:
- *	jquery.ui.core.js
- *	jquery.ui.widget.js
- *	jquery.ui.position.js
  */
-(function( $ ) {
+(function( factory ) {
+	if ( typeof define === "function" && define.amd ) {
+		// AMD. Register as an anonymous module.
+		define([
+			"jquery",
+			"./jquery.ui.core",
+			"./jquery.ui.widget",
+			"./jquery.ui.position"
+		], factory );
+	} else {
+		// Browser globals
+		factory( jQuery );
+	}
+}(function( $ ) {
 
 var increments = 0;
 
@@ -399,4 +407,4 @@ $.widget( "ui.tooltip", {
 	}
 });
 
-}( jQuery ) );
+}));

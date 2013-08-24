@@ -7,13 +7,21 @@
  * http://jquery.org/license
  *
  * http://api.jqueryui.com/slider/
- *
- * Depends:
- *	jquery.ui.core.js
- *	jquery.ui.mouse.js
- *	jquery.ui.widget.js
  */
-(function( $, undefined ) {
+(function( factory ) {
+	if ( typeof define === "function" && define.amd ) {
+		// AMD. Register as an anonymous module.
+		define([
+			"jquery",
+			"./jquery.ui.core",
+			"./jquery.ui.mouse",
+			"./jquery.ui.widget"
+		], factory );
+	} else {
+		// Browser globals
+		factory( jQuery );
+	}
+}(function( $ ) {
 
 // number of pages in a slider
 // (how many times can you page up/down to go through the whole range)
@@ -677,4 +685,4 @@ $.widget( "ui.slider", $.ui.mouse, {
 
 });
 
-}(jQuery));
+}));

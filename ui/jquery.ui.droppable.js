@@ -7,16 +7,24 @@
  * http://jquery.org/license
  *
  * http://api.jqueryui.com/droppable/
- *
- * Depends:
- *	jquery.ui.core.js
- *	jquery.ui.widget.js
- *	jquery.ui.mouse.js
- *	jquery.ui.draggable.js
  */
-(function( $, undefined ) {
+(function( factory ) {
+	if ( typeof define === "function" && define.amd ) {
+		// AMD. Register as an anonymous module.
+		define([
+			"jquery",
+			"./jquery.ui.core",
+			"./jquery.ui.widget",
+			"./jquery.ui.mouse",
+			"./jquery.ui.draggable"
+		], factory );
+	} else {
+		// Browser globals
+		factory( jQuery );
+	}
+}(function( $ ) {
 
-function isOverAxis( x, reference, size ) {
+function droppableIsOverAxis( x, reference, size ) {
 	return ( x >= reference ) && ( x < ( reference + size ) );
 }
 
@@ -231,7 +239,7 @@ $.ui.intersect = function( draggable, droppable, toleranceMode ) {
 		case "pointer":
 			draggableLeft = ( ( draggable.positionAbs || draggable.position.absolute ).left + ( draggable.clickOffset || draggable.offset.click ).left );
 			draggableTop = ( ( draggable.positionAbs || draggable.position.absolute ).top + ( draggable.clickOffset || draggable.offset.click ).top );
-			return isOverAxis( draggableTop, t, droppable.proportions().height ) && isOverAxis( draggableLeft, l, droppable.proportions().width );
+			return droppableIsOverAxis( draggableTop, t, droppable.proportions().height ) && droppableIsOverAxis( draggableLeft, l, droppable.proportions().width );
 		case "touch":
 			return (
 				( y1 >= t && y1 <= b ) || // Top edge touching
@@ -386,4 +394,4 @@ $.ui.ddmanager = {
 	}
 };
 
-})( jQuery );
+}));

@@ -7,11 +7,19 @@
  * http://jquery.org/license
  *
  * http://api.jqueryui.com/slide-effect/
- *
- * Depends:
- *	jquery.ui.effect.js
  */
-(function( $, undefined ) {
+(function( factory ) {
+	if ( typeof define === "function" && define.amd ) {
+		// AMD. Register as an anonymous module.
+		define([
+			"jquery",
+			"./jquery.ui.effect"
+		], factory );
+	} else {
+		// Browser globals
+		factory( jQuery );
+	}
+}(function( $ ) {
 
 $.effects.effect.slide = function( o, done ) {
 
@@ -61,4 +69,4 @@ $.effects.effect.slide = function( o, done ) {
 	});
 };
 
-})(jQuery);
+}));
