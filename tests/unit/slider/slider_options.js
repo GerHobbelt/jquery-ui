@@ -1,6 +1,3 @@
-/*
- * slider_options.js
- */
 (function( $ ) {
 
 var element, options;
@@ -16,7 +13,7 @@ test( "disabled", function(){
 	var count = 0;
 
 	element = $( "#slider1" ).slider();
-	element.on( "slidestart", function() {
+	element.bind( "slidestart", function() {
 		count++;
 	});
 
@@ -180,13 +177,13 @@ test( "values", function() {
 		document.createElement( "div" ),
 		document.createElement( "div" )
 	]).slider({
-		range:  true,
+		range: true,
 		values: [ 25, 75 ]
 	});
 
 	notStrictEqual(
-		ranges.eq( 0 ).data( "uiSlider" ).options.values,
-		ranges.eq( 1 ).data( "uiSlider" ).options.values,
+		ranges.eq( 0 ).slider( "instance" ).options.values,
+		ranges.eq( 1 ).slider( "instance" ).options.values,
 		"multiple range sliders should not have a reference to the same options.values array"
 	);
 
@@ -200,7 +197,7 @@ test( "values", function() {
 });
 
 test( "range", function() {
-	expect( 27 );
+	expect( 33 );
 	var range;
 
 	// min
@@ -299,6 +296,21 @@ test( "range", function() {
 	equal( element.slider( "value" ), 1 , "value" );
 	equal( element.slider( "option", "values" ), null, "values" );
 	deepEqual( element.slider( "values" ), [] , "values" );
+	element.slider( "destroy" );
+
+	// Change range from true to false
+	element = $( "<div></div>" ).slider({
+		range: true,
+		min: 1,
+		max: 10,
+		step: 1
+	}).slider( "option", "range", false );
+	equal( element.find( ".ui-slider-handle" ).length, 2, "range switch from true to false, both handles remain" );
+	equal( element.find( ".ui-slider-range" ).length, 0, "range switch from true to false" );
+	equal( element.slider( "option", "value" ), 0 , "option value" );
+	equal( element.slider( "value" ), 1 , "value" );
+	deepEqual( element.slider( "option", "values" ), [1, 1], "option values" );
+	deepEqual( element.slider( "values" ), [1, 1], "values" );
 	element.slider( "destroy" );
 });
 
