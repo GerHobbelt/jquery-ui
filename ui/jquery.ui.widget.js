@@ -134,6 +134,8 @@ $.widget = function( name, base, prototype ) {
 	}
 
 	$.widget.bridge( name, constructor );
+
+	return constructor;
 };
 
 $.widget.extend = function( target ) {
@@ -271,9 +273,6 @@ $.Widget.prototype = {
 		// all event bindings should go through this._on()
 		this.element
 			.unbind( this.eventNamespace )
-			// 1.9 BC for #7810
-			// TODO remove dual storage
-			.removeData( this.widgetName )
 			.removeData( this.widgetFullName )
 			// support: jquery <1.6.3
 			// http://bugs.jquery.com/ticket/9413
@@ -358,10 +357,10 @@ $.Widget.prototype = {
 	},
 
 	enable: function() {
-		return this._setOption( "disabled", false );
+		return this._setOptions({ disabled: false });
 	},
 	disable: function() {
-		return this._setOption( "disabled", true );
+		return this._setOptions({ disabled: true });
 	},
 
 	_on: function( suppressDisabledCheck, element, handlers ) {
