@@ -68,7 +68,7 @@ test( "refresh - structure", function () {
 	equal( element.find( "option" ).first().text(), menu.find( "li" ).not( ".ui-selectmenu-optgroup" ).first().text(), "changed item" );
 });
 
-test( "refresh - change selected option", function () {
+asyncTest( "refresh - change selected option", function () {
 	expect( 3 );
 
 	var element = $( "#speed" ).selectmenu(),
@@ -78,13 +78,16 @@ test( "refresh - change selected option", function () {
 
 	button.simulate( "focus" );
 
-	equal( element.find( "option:selected" ).text(), button.text(), "button text after focus" );
+	setTimeout(function() {
+		equal( element.find( "option:selected" ).text(), button.text(), "button text after focus" );
 
-	element.find( "option" ).eq( 2 ).removeAttr( "selected" );
-	element.find( "option" ).eq( 0 ).attr( "selected", "selected" );
-	element.selectmenu( "refresh" );
+		element[ 0 ].selectedIndex = 0;
+		element.selectmenu( "refresh" );
 
-	equal( element.find( "option:selected" ).text(), button.text(), "button text after changing selected option" );
+		equal( element.find( "option:selected" ).text(), button.text(), "button text after changing selected option" );
+
+		start();
+	}, 1 );
 });
 
 
@@ -123,14 +126,13 @@ test( "refresh - disabled option", function () {
 
 test( "refresh - disabled optgroup", function () {
 
-	var i,
-		item,
+	var i, item,
 		element = $( "#files" ).selectmenu(),
 		menu = element.selectmenu( "menuWidget" ).parent(),
 		originalDisabledOptgroup = element.find( "optgroup" ).first(),
 		originalDisabledOptions = originalDisabledOptgroup.find( "option" );
 
-	expect(2 + originalDisabledOptions.length);
+	expect( 2 + originalDisabledOptions.length );
 
 	originalDisabledOptgroup.attr( "disabled", "disabled" );
 	element.selectmenu( "refresh" );
@@ -145,19 +147,19 @@ test( "refresh - disabled optgroup", function () {
 	}
 });
 
-test( "widget", function() {
+test( "widget and menuWidget", function() {
 	expect( 4 );
 	var element = $( "#speed" ).selectmenu(),
-		widgetElement = element.selectmenu( "widget" ),
-		menuWidgetElement = element.selectmenu( "menuWidget" );
+		button = element.selectmenu( "widget" ),
+		menu = element.selectmenu( "menuWidget" );
 
 	element.selectmenu( "refresh" );
 
-	equal( widgetElement.length, 1, "widget: one element" );
-	ok( widgetElement.is( "a.ui-button" ), "widget: button element" );
+	equal( button.length, 1, "button: one element" );
+	ok( button.is( ".ui-selectmenu-button" ), "button: class" );
 
-	equal( menuWidgetElement.length, 1, "menuWidget: one element" );
-	ok( menuWidgetElement.is( "ul.ui-menu" ), "menuWidget: menu element" );
+	equal( menu.length, 1, "Menu Widget: one element" );
+	ok( menu.is( "ul.ui-menu" ), "Menu Widget: element and class" );
 });
 
 })( jQuery );

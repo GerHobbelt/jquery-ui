@@ -77,16 +77,22 @@ TestHelpers.testJshint = function( module ) {
 				dataType: "text"
 			})
 		).done(function( hintArgs, srcArgs ) {
-			var passed = JSHINT( srcArgs[ 0 ], hintArgs[ 0 ] ),
-				errors = $.map( JSHINT.errors, function( error ) {
-					// JSHINT may report null if there are too many errors
-					if ( !error ) {
-						return;
-					}
+			var globals, passed, errors,
+				jshintrc = hintArgs[ 0 ],
+				source = srcArgs[ 0 ];
 
-					return "[L" + error.line + ":C" + error.character + "] " +
-						error.reason + "\n" + error.evidence + "\n";
-				}).join( "\n" );
+			globals = jshintrc.globals || {};
+			delete jshintrc.globals;
+			passed = JSHINT( source, jshintrc, globals ),
+			errors = $.map( JSHINT.errors, function( error ) {
+				// JSHINT may report null if there are too many errors
+				if ( !error ) {
+					return;
+				}
+
+				return "[L" + error.line + ":C" + error.character + "] " +
+					error.reason + "\n" + error.evidence + "\n";
+			}).join( "\n" );
 			ok( passed, errors );
 			start();
 		})
@@ -167,6 +173,18 @@ TestHelpers.commonWidgetTests = function( widget, settings ) {
 		expect( 1 );
 		ok( "version" in $.ui[ widget ].prototype, "version property exists" );
 	});
+};
+
+TestHelpers.onFocus= function( element, onFocus ) {
+	var fn = function( event ){
+		if( !event.originalEvent ) {
+			return;
+		}
+		element.unbind( "focus", fn );
+		onFocus();
+	};
+
+	element.bind( "focus", fn )[ 0 ].focus();
 };
 
 /*

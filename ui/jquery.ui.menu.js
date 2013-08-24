@@ -75,9 +75,13 @@ $.widget( "ui.menu", {
 			"click .ui-menu-item:has(a)": function( event ) {
 				var target = $( event.target ).closest( ".ui-menu-item" );
 				if ( !this.mouseHandled && target.not( ".ui-state-disabled" ).length ) {
-					this.mouseHandled = true;
-
 					this.select( event );
+
+					// Only set the mouseHandled flag if the event will bubble, see #9469.
+					if ( !event.isPropagationStopped() ) {
+						this.mouseHandled = true;
+					}
+
 					// Open submenu on click
 					if ( target.has( ".ui-menu" ).length ) {
 						this.expand( event );
@@ -126,7 +130,7 @@ $.widget( "ui.menu", {
 		// Clicks outside of a menu collapse any open menus
 		this._on( this.document, {
 			click: function( event ) {
-				if ( !$( event.target ).closest( ".ui-menu" ).length ) {
+				if ( this._closeOnDocumentClick( event ) ) {
 					this.collapseAll( event );
 				}
 
@@ -174,7 +178,6 @@ $.widget( "ui.menu", {
 	},
 
 	_keydown: function( event ) {
-		/*jshint maxcomplexity:20*/
 		var match, prev, character, skip, regex,
 			preventDefault = true;
 
@@ -283,6 +286,8 @@ $.widget( "ui.menu", {
 			icon = this.options.icons.submenu,
 			submenus = this.element.find( this.options.menus );
 
+		this.element.toggleClass( "ui-menu-icons", !!this.element.find( ".ui-icon" ).length );
+
 		// Initialize nested menus
 		submenus.filter( ":not(.ui-menu)" )
 			.addClass( "ui-menu ui-widget ui-widget-content ui-corner-all" )
@@ -350,6 +355,11 @@ $.widget( "ui.menu", {
 				.removeClass( this.options.icons.submenu )
 				.addClass( value.submenu );
 		}
+		if ( key === "disabled" ) {
+			this.element
+				.toggleClass( "ui-state-disabled", !!value )
+				.attr( "aria-disabled", value );
+		}
 		this._super( key, value );
 	},
 
@@ -383,7 +393,7 @@ $.widget( "ui.menu", {
 		}
 
 		nested = item.children( ".ui-menu" );
-		if ( nested.length && ( /^mouse/.test( event.type ) ) ) {
+		if ( nested.length && event && ( /^mouse/.test( event.type ) ) ) {
 			this._startOpening(nested);
 		}
 		this.activeMenu = item.parent();
@@ -490,6 +500,10 @@ $.widget( "ui.menu", {
 			.end()
 			.find( "a.ui-state-active" )
 				.removeClass( "ui-state-active" );
+	},
+
+	_closeOnDocumentClick: function( event ) {
+		return !$( event.target ).closest( ".ui-menu" ).length;
 	},
 
 	collapse: function( event ) {

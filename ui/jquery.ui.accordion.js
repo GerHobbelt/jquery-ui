@@ -65,8 +65,7 @@ $.widget( "ui.accordion", {
 	_getCreateEventData: function() {
 		return {
 			header: this.active,
-			panel: !this.active.length ? $() : this.active.next(),
-			content: !this.active.length ? $() : this.active.next()
+			panel: !this.active.length ? $() : this.active.next()
 		};
 	},
 
@@ -100,7 +99,7 @@ $.widget( "ui.accordion", {
 
 		// clean up headers
 		this.headers
-			.removeClass( "ui-accordion-header ui-accordion-header-active ui-helper-reset ui-state-default ui-corner-all ui-state-active ui-state-disabled ui-corner-top" )
+			.removeClass( "ui-accordion-header ui-accordion-header-active ui-state-default ui-corner-all ui-state-active ui-state-disabled ui-corner-top" )
 			.removeAttr( "role" )
 			.removeAttr( "aria-selected" )
 			.removeAttr( "aria-controls" )
@@ -161,13 +160,15 @@ $.widget( "ui.accordion", {
 		// #5332 - opacity doesn't cascade to positioned elements in IE
 		// so we need to add the disabled class to the headers and panels
 		if ( key === "disabled" ) {
+			this.element
+				.toggleClass( "ui-state-disabled", !!value )
+				.attr( "aria-disabled", value );
 			this.headers.add( this.headers.next() )
 				.toggleClass( "ui-state-disabled", !!value );
 		}
 	},
 
 	_keydown: function( event ) {
-		/*jshint maxcomplexity:15*/
 		if ( event.altKey || event.ctrlKey ) {
 			return;
 		}
@@ -221,7 +222,7 @@ $.widget( "ui.accordion", {
 			options.active = false;
 			this.active = $();
 		// active false only when collapsible is true
-		} if ( options.active === false ) {
+		} else if ( options.active === false ) {
 			this._activate( 0 );
 		// was active, but active panel is gone
 		} else if ( this.active.length && !$.contains( this.element[ 0 ], this.active[ 0 ] ) ) {
@@ -246,7 +247,7 @@ $.widget( "ui.accordion", {
 
 	_processPanels: function() {
 		this.headers = this.element.find( this.options.header )
-			.addClass( "ui-accordion-header ui-helper-reset ui-state-default ui-corner-all" );
+			.addClass( "ui-accordion-header ui-state-default ui-corner-all" );
 
 		this.headers.next()
 			.addClass( "ui-accordion-content ui-helper-reset ui-widget-content ui-corner-bottom" )
