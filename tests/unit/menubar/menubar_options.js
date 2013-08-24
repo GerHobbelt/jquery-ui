@@ -10,11 +10,11 @@ module( "menubar: options", {
 	}
 });
 
-test( "menuElement and items", function() {
+test( "menus and items", function() {
 	expect( 2 );
 	var element = $( "#bar2" ).menubar({
 		items: ".menubarItem",
-		menuElement: ".menuElement"
+		menus: ".menuElement"
 	});
 	var fileItem = element.find( ">:eq(1)>a:first" );
 	var fileMenu = fileItem.next();
@@ -41,7 +41,7 @@ test( "icons: custom", function() {
 	expect( 1 );
 	var element = $( "#bar1" ).menubar({
 		icons: {
-			menu: "custom-icon-class"
+			dropdown: "custom-icon-class"
 		}
 	});
 	equal( element.find(".custom-icon-class").length, 3 );

@@ -20,9 +20,14 @@ $.widget( "ui.menubar", {
 	version: "@VERSION",
 	options: {
 		items: "li",
-		menuElement: "ul",
-		icons: { menu: "ui-icon-triangle-1-s" },
-		position: { my: "left top", at: "left bottom" },
+		menus: "ul",
+		icons: {
+			dropdown: "ui-icon-triangle-1-s"
+		},
+		position: {
+			my: "left top",
+			at: "left bottom"
+		},
 
 		// callbacks
 		select: null
@@ -47,7 +52,7 @@ $.widget( "ui.menubar", {
 		this.element
 			.addClass( "ui-menubar ui-widget-header ui-helper-clearfix" )
 			.attr( "role", "menubar" );
-		this._on( this.element, {
+		this._on({
 			keydown: function( event ) {
 				var active;
 
@@ -64,13 +69,13 @@ $.widget( "ui.menubar", {
 				}
 			},
 			focusin: function() {
-				this.items.eq( 0 ).attr( "tabIndex", -1 );
 				clearTimeout( this.closeTimer );
 			},
-			focusout: function() {
+			focusout: function( event ) {
 				this.closeTimer = this._delay( function() {
 					this._close( event );
-					this.items.eq( 0 ).attr( "tabIndex", 0 );
+					this.items.attr( "tabIndex", -1 );
+					this.lastFocused.attr( "tabIndex", 0 );
 				}, 150 );
 			},
 			"mouseenter .ui-menubar-item": function() {
@@ -86,22 +91,24 @@ $.widget( "ui.menubar", {
 		this.menuItems
 			.addClass( "ui-menubar-item" )
 			.attr( "role", "presentation" )
+			// TODO why do these not work when moved to CSS?
 			.css({
 				"border-width": "1px",
 				"border-style": "hidden"
 			});
 
-		subMenus = this.menuItems.children( menubar.options.menuElement ).menu({
+		subMenus = this.menuItems.children( menubar.options.menus ).menu({
 			position: {
 				within: this.options.position.within
 			},
 			select: function( event, ui ) {
+				// TODO don't hardcode markup selectors
 				ui.item.parents( "ul.ui-menu:last" ).hide();
 				menubar._close();
 				ui.item.parents( ".ui-menubar-item" ).children().first().focus();
 				menubar._trigger( "select", event, ui );
 			},
-			menus: this.options.menuElement
+			menus: this.options.menus
 		})
 			.hide()
 			.attr({
@@ -111,14 +118,17 @@ $.widget( "ui.menubar", {
 
 		this._on( subMenus, {
 			keydown: function( event ) {
-				$(event.target).attr( "tabIndex", 0 );
+				// TODO why is this needed?
+				$( event.target ).attr( "tabIndex", 0 );
 				var parentButton,
 					menu = $( this );
+				// TODO why are there keydown events on a hidden menu?
 				if ( menu.is( ":hidden" ) ) {
 					return;
 				}
 				switch ( event.keyCode ) {
 				case $.ui.keyCode.LEFT:
+					// TODO why can't this call menubar.previous()?
 					parentButton = menubar.active.prev( ".ui-button" );
 
 					if ( this.openSubmenus ) {
@@ -133,7 +143,8 @@ $.widget( "ui.menubar", {
 					}
 
 					event.preventDefault();
-					$(event.target).attr( "tabIndex", -1 );
+					// TODO same as above where it's set to 0
+					$( event.target ).attr( "tabIndex", -1 );
 					break;
 				case $.ui.keyCode.RIGHT:
 					this.next( event );
@@ -142,7 +153,8 @@ $.widget( "ui.menubar", {
 				}
 			},
 			focusout: function( event ) {
-				$(event.target).removeClass( "ui-state-focus" );
+				// TODO why does this have to use event.target? Is that different from currentTarget?
+				$( event.target ).removeClass( "ui-state-focus" );
 			}
 		});
 
@@ -153,9 +165,10 @@ $.widget( "ui.menubar", {
 	},
 
 	_hasSubMenu: function( menuItem ) {
-		return $( menuItem ).children( this.options.menuElement ).length > 0;
+		return $( menuItem ).children( this.options.menus ).length > 0;
 	},
 
+	// TODO get rid of these - currently still in use in _move
 	_identifyMenuItemsNeighbors: function( menuItem, menubar, index ) {
 		var collectionLength = this.menuItems.length,
 			isFirstElement = ( index === 0 ),
@@ -188,23 +201,22 @@ $.widget( "ui.menubar", {
 	},
 
 	_initializeItem: function( anItem ) {
-		// TODO remove this var, or rename to `that`
-		var menubar = this,
-			menuItemHasSubMenu = this._hasSubMenu( anItem.parent() );
+		var menuItemHasSubMenu = this._hasSubMenu( anItem.parent() );
 
 		anItem
 			.addClass( "ui-button ui-widget ui-button-text-only ui-menubar-link" )
 			.attr( "role", "menuitem" )
 			.wrapInner( "<span class='ui-button-text'></span>" );
 
-		menubar._on( anItem, {
-			focus:	function(){
+		this._on( anItem, {
+			focus:	function( event ){
 				anItem.attr( "tabIndex", 0 );
 				anItem.addClass( "ui-state-focus" );
 				event.preventDefault();
 			},
-			focusout:  function(){
+			focusout:  function( event ){
 				anItem.attr( "tabIndex", -1 );
+				this.lastFocused = anItem;
 				anItem.removeClass( "ui-state-focus" );
 				event.preventDefault();
 			}
@@ -241,12 +253,12 @@ $.widget( "ui.menubar", {
 			});
 
 			anItem.attr( "aria-haspopup", "true" );
-			if ( menubar.options.icons ) {
-				anItem.append( "<span class='ui-button-icon-secondary ui-icon " + this.options.icons.menu + "'></span>" );
+			if ( this.options.icons ) {
+				anItem.append( "<span class='ui-button-icon-secondary ui-icon " + this.options.icons.dropdown + "'></span>" );
 				anItem.removeClass( "ui-button-text-only" ).addClass( "ui-button-text-icon-secondary" );
 			}
 		} else {
-			menubar._on( anItem, {
+			this._on( anItem, {
 				click: function() {
 					if ( this.active ) {
 						this._close();
@@ -274,6 +286,8 @@ $.widget( "ui.menubar", {
 		}
 	},
 
+	// TODO silly name, too much complexity
+	// TODO why is this used for three types of events?
 	_mouseBehaviorForMenuItemWithSubmenu: function( event ) {
 		var isClickingToCloseOpenMenu, menu;
 
@@ -283,7 +297,7 @@ $.widget( "ui.menubar", {
 		}
 		event.preventDefault();
 
-		menu = $(event.target).parents( ".ui-menubar-item" ).children( this.options.menuElement );
+		menu = $(event.target).parents( ".ui-menubar-item" ).children( this.options.menus );
 
 		// If we have an open menu and we see a click on the menuItem
 		// and the menu thereunder is the same as the active menu, close it.
@@ -337,6 +351,7 @@ $.widget( "ui.menubar", {
 			.removeAttr( "aria-haspopup" )
 			.children( ".ui-icon" ).remove();
 
+		// TODO fix this
 		if ( false ) {
 			// Does not unwrap
 			this.items.children( "span.ui-button-text" ).unwrap();
@@ -358,6 +373,9 @@ $.widget( "ui.menubar", {
 	},
 
 	_collapseActiveMenu: function() {
+		if ( !this.active.is( ":ui-menu" ) ) {
+			return;
+		}
 		this.active
 			.menu( "collapseAll" )
 			.hide()
@@ -389,6 +407,13 @@ $.widget( "ui.menubar", {
 		}
 
 		menuItem.addClass( "ui-state-active" );
+		// workaround when clicking a non-menu item, then hovering a menu, then going back
+		// this way afterwards its still possible to tab back to a menubar, even if its
+		// the wrong item
+		// see also "click menu-less item, hover in and out of item with menu" test in menubar_core
+		if ( !this.lastFocused ) {
+			this.lastFocused = menu.prev();
+		}
 
 		this.active = menu
 			.show()

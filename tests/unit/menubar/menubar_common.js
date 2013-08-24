@@ -1,9 +1,9 @@
 TestHelpers.commonWidgetTests( "menubar", {
 	defaults: {
 		items: "li",
-		menuElement: "ul",
+		menus: "ul",
 		icons: {
-			menu: "ui-icon-triangle-1-s"
+			dropdown: "ui-icon-triangle-1-s"
 		},
 		position: {
 			my: "left top",
@@ -12,6 +12,7 @@ TestHelpers.commonWidgetTests( "menubar", {
 		disabled: false,
 
 		// callbacks
-		create: null
+		create: null,
+		select: null
 	}
 });
