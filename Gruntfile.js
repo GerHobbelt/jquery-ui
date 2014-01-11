@@ -19,8 +19,8 @@ var
 	uiFiles = coreFiles.map(function( file ) {
 		return "ui/" + file;
 	}).concat( grunt.file.expandFiles( "ui/*.js" ).filter(function( file ) {
-		return coreFiles.indexOf( file.substring(3) ) === -1;
-	})),
+		return coreFiles.indexOf( file.substring( 3 ) ) === -1;
+	}) ),
 
 	allI18nFiles = grunt.file.expandFiles( "ui/i18n/*.js" ),
 
@@ -81,11 +81,18 @@ uiFiles.forEach(function( file ) {
 });
 
 // grunt plugins
+grunt.loadNpmTasks( "grunt-contrib-jshint" );
+grunt.loadNpmTasks( "grunt-contrib-uglify" );
+grunt.loadNpmTasks( "grunt-contrib-concat" );
+grunt.loadNpmTasks( "grunt-contrib-qunit" );
+grunt.loadNpmTasks( "grunt-contrib-csslint" );
+grunt.loadNpmTasks( "grunt-jscs-checker" );
 grunt.loadNpmTasks( "grunt-css" );
 grunt.loadNpmTasks( "grunt-html" );
 grunt.loadNpmTasks( "grunt-compare-size" );
 //grunt.loadNpmTasks( "grunt-junit" );
 grunt.loadNpmTasks( "grunt-git-authors" );
+grunt.loadNpmTasks( "grunt-esformatter" );
 // local testswarm and build tasks
 grunt.loadTasks( "build/tasks" );
 
@@ -145,6 +152,13 @@ grunt.initConfig({
 			src: [ "<banner:meta.bannerCSS>", stripBanner( cssFiles ) ],
 			dest: "dist/jquery-ui.css"
 		}
+	},
+	jscs: {
+		// datepicker, sortable, resizable and draggable are getting rewritten, ignore until that's done
+		ui: [ "ui/jquery.ui.*.js", "!ui/jquery.ui.datepicker.js", "!ui/jquery.ui.sortable.js", "!ui/jquery.ui.resizable.js", "!ui/jquery.ui.draggable.js" ],
+		// TODO enable this once we have a tool that can help with fixing formatting of existing files
+		// tests: "tests/unit/**/*.js",
+		grunt: "Gruntfile.js"
 	},
 	min: minify,
 	cssmin: minifyCSS,
@@ -292,52 +306,44 @@ grunt.initConfig({
 		grunt: [ "grunt.js", "build/**/*.js" ],
 		tests: "tests/unit/**/*.js"
 	},
+	jshint: {
+		options: {
+			jshintrc: true
+		},
+		all: [
+			"ui/*.js",
+			"Gruntfile.js",
+			"build/**/*.js",
+			"tests/unit/**/*.js"
+		]
+	},
 	csslint: {
-		// nothing: []
-		// TODO figure out what to check for, then fix and enable
 		base_theme: {
-			src: grunt.file.expandFiles( "themes/base/*.css" ).filter(function( file ) {
-				// TODO remove items from this list once rewritten
-				return !( /(button|datepicker|core|dialog|theme)\.css$/ ).test( file );
-			}),
-			// TODO consider reenabling some of these rules
-			rules: {
-				"adjoining-classes": false,
-				"import": false,
-				"outline-none": false,
-				// especially this one
-				"overqualified-elements": false,
-				"compatible-vendor-prefixes": false
+			src: "themes/base/*.css",
+			options: {
+				csslintrc: ".csslintrc"
 			}
 		}
 	},
-	jshint: (function() {
-		function parserc( path ) {
-			var rc = grunt.file.readJSON( (path || "") + ".jshintrc" ),
-				settings = {
-					options: rc,
-					globals: {}
-				};
-
-			(rc.predef || []).forEach(function( prop ) {
-				settings.globals[ prop ] = true;
-			});
-			delete rc.predef;
-
-			return settings;
-		}
-
-		return {
-			grunt: parserc(),
-			ui: parserc( "ui/" ),
-			// TODO: `evil: true` is only for document.write() https://github.com/jshint/jshint/issues/519
-			// TODO: don't create so many globals in tests
-			tests: parserc( "tests/" )
-		};
-	})()
+	esformatter: {
+		options: {
+			preset: "jquery"
+		},
+		ui: "ui/*.js",
+		tests: "tests/unit/**/*.js",
+		build: {
+			options: {
+				skipHashbang: true
+			},
+			src: "build/**/*.js"
+		},
+		grunt: "Gruntfile.js"
+	}
 });
 
 grunt.registerTask( "default", "lint csslint htmllint qunit" );
+grunt.registerTask( "lint", [ "asciilint", "jshint", "jscs", "csslint", "htmllint" ]);
+grunt.registerTask( "test", [ "qunit" ]);
 grunt.registerTask( "sizer", "concat:ui min:dist/jquery-ui.min.js compare_size:all" );
 grunt.registerTask( "sizer_all", "concat:ui min compare_size" );
 grunt.registerTask( "build", "concat min cssmin copy:dist_units_images" );
