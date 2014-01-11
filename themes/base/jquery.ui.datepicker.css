@@ -6,7 +6,7 @@
  * Released under the MIT license.
  * http://jquery.org/license
  *
- * http://docs.jquery.com/UI/Datepicker#theming
+ * http://api.jqueryui.com/datepicker/#theming
  */
 .ui-datepicker {
 	width: 17em;
@@ -21,8 +21,13 @@
 .ui-datepicker .ui-datepicker-next {
 	position: absolute;
 	top: 2px;
-	width: 1.8em;
-	height: 1.8em;
+	width: 19px;
+	height: 18px;
+}
+.ui-datepicker .ui-datepicker-prev:not(.ui-state-hover):not(.ui-state-focus),
+.ui-datepicker .ui-datepicker-next:not(.ui-state-hover):not(.ui-state-focus) {
+	background: none;
+	border: none;
 }
 .ui-datepicker .ui-datepicker-prev-hover,
 .ui-datepicker .ui-datepicker-next-hover {
@@ -40,8 +45,8 @@
 .ui-datepicker .ui-datepicker-next-hover {
 	right: 1px;
 }
-.ui-datepicker .ui-datepicker-prev span,
-.ui-datepicker .ui-datepicker-next span {
+.ui-datepicker .ui-datepicker-prev .ui-icon,
+.ui-datepicker .ui-datepicker-next .ui-icon {
 	display: block;
 	position: absolute;
 	left: 50%;
@@ -57,9 +62,6 @@
 .ui-datepicker .ui-datepicker-title select {
 	font-size: 1em;
 	margin: 1px 0;
-}
-.ui-datepicker select.ui-datepicker-month-year {
-	width: 100%;
 }
 .ui-datepicker select.ui-datepicker-month,
 .ui-datepicker select.ui-datepicker-year {

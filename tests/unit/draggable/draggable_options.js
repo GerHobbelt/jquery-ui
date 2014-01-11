@@ -346,8 +346,39 @@ test( "{ containment: 'parent' }, absolute", function() {
 	deepEqual( offsetAfter, expected, "compare offset to parent" );
 });
 
-test( "containment, default, switching after initialization", function() {
+test( "containment, account for border", function() {
 	expect( 2 );
+
+	var el = $("#draggable1").appendTo("#main"),
+		parent = el.parent().css({
+			height: "100px",
+			width: "100px",
+			borderStyle: "solid",
+			borderWidth: "5px 10px 15px 20px"
+		}),
+		parentBottom = parent.offset().top + parent.outerHeight(),
+		parentRight = parent.offset().left + parent.outerWidth(),
+		parentBorderBottom = TestHelpers.draggable.border( parent, "bottom" ),
+		parentBorderRight = TestHelpers.draggable.border( parent, "right" );
+
+	el.css({
+		height: "5px",
+		width: "5px"
+	}).draggable({ containment: "parent" });
+
+	el.simulate( "drag", {
+		dx: 100,
+		dy: 100
+	});
+
+	equal( el.offset().top, parentBottom - parentBorderBottom - el.height(),
+		"The draggable should be on top of its parent's bottom border" );
+	equal( el.offset().left, parentRight - parentBorderRight - el.width(),
+		"The draggable should be to the right of its parent's right border" );
+});
+
+test( "containment, default, switching after initialization", function() {
+	expect( 3 );
 
 	var element = $( "#draggable1" ).draggable({ containment: false });
 
@@ -362,9 +393,8 @@ test( "containment, default, switching after initialization", function() {
 
 	TestHelpers.draggable.testDrag( element, element, -100, -100, 0, 0 );
 
-	// TODO: Switching back to false does not update to false
-	// element.draggable( "option", "containment", false );
-	// TestHelpers.draggable.testDrag( element, element, -100, -100, -100, -100 );
+	element.draggable( "option", "containment", false );
+	TestHelpers.draggable.testDrag( element, element, -100, -100, -100, -100 );
 });
 
 test( "{ cursor: 'auto' }, default", function() {
@@ -419,6 +449,38 @@ test( "{ cursor: 'move' }", function() {
 
 	equal( actual, expected, "start callback: cursor '" + expected + "'" );
 	equal( after, before, "after drag: cursor restored" );
+});
+
+test( "#6889: Cursor doesn't revert to pre-dragging state after revert action when original element is removed", function() {
+	function getCursor() {
+		return $( "body" ).css( "cursor" );
+	}
+
+	expect( 2 );
+
+	var element = $( "#draggable1" ).wrap( "<div id='wrapper' />" ).draggable({
+			cursor: "move",
+			revert: true,
+			revertDuration: 0,
+			start: function() {
+				notEqual( getCursor(), expected, "start callback: cursor '" + expected + "'" );
+				$( "#wrapper" ).remove();
+			},
+			stop: function() {
+				equal( getCursor(), expected, "after drag: cursor restored" );
+			}
+		}),
+		expected = getCursor();
+
+	if ( TestHelpers.draggable.unreliableContains ) {
+		ok( true, "Opera <12.14 and Safari <6.0 report wrong values for $.contains in jQuery < 1.8" );
+		ok( true, "Opera <12.14 and Safari <6.0 report wrong values for $.contains in jQuery < 1.8" );
+	} else {
+		element.simulate( "drag", {
+			dx: -1,
+			dy: -1
+		});
+	}
 });
 
 test( "cursor, default, switching after initialization", function() {
@@ -572,38 +634,14 @@ test( "grid, switching after initialization", function() {
 });
 
 test( "{ handle: 'span' }", function() {
-	expect( 2 );
+	expect( 3 );
 
 	var element = $( "#draggable2" ).draggable({ handle: "span" });
 
 	TestHelpers.draggable.testDrag( element, "#draggable2 span", 50, 50, 50, 50, "drag span" );
+	TestHelpers.draggable.testDrag( element, "#draggable2 span em", 50, 50, 50, 50, "drag span child" );
 	TestHelpers.draggable.shouldNotMove( element, "drag element" );
 });
-
-/*
-test( "{ handle: Selectors }, matching parent selector", function() {
-
-	expect( 4 );
-
-	var element = $( "#draggable2" ).draggable({ handle: "span a" });
-
-	$( "#qunit-fixture" ).append( "<span id='wrapping'><a></a></span>" );
-
-	element.find( "span" ).append( "<a>" );
-
-	$( "#wrapping a" ).append( element );
-
-	TestHelpers.draggable.testDrag( element, "#draggable2 span a", 50, 50, 50, 50, "drag span child" );
-	TestHelpers.draggable.shouldNotMove( $( "#wrapping a" ) );
-
-	$( "#draggable2" ).draggable( "option", "handle", "span > a" );
-	$( "#draggable2" ).find( "a" ).append( "<a>" );
-
-	TestHelpers.draggable.testDrag( element, $( "#draggable2 span a" ).first(), 50, 50, 50, 50, "drag span child" );
-	TestHelpers.draggable.shouldNotMove( $( "#draggable2 span a" ).last() );
-
-});
-*/
 
 test( "handle, default, switching after initialization", function() {
 	expect( 6 );
@@ -1050,11 +1088,11 @@ test( "scope", function() {
 
 	$( "#droppable" ).droppable({ scope: "tasks" });
 
-	TestHelpers.draggable.testDrag( element, element, 100, 100, 0, 0, "revert: valid reverts when dropped on a droppable" );
+	TestHelpers.draggable.testDrag( element, element, 100, 100, 0, 0, "revert: valid reverts when dropped on a droppable in scope" );
 
 	$( "#droppable" ).droppable( "destroy" ).droppable({ scope: "nottasks" });
 
-	TestHelpers.draggable.testDrag( element, element, 100, 100, 100, 100, "revert: valid reverts when dropped on a droppable" );
+	TestHelpers.draggable.testDrag( element, element, 100, 100, 100, 100, "revert: valid reverts when dropped on a droppable out of scope" );
 });
 
 test( "scroll, scrollSensitivity, and scrollSpeed", function() {
@@ -1096,8 +1134,43 @@ test( "scroll, scrollSensitivity, and scrollSpeed", function() {
 	TestHelpers.draggable.restoreScroll( document );
 });
 
+test( "#6817: auto scroll goes double distance when dragging", function() {
+	expect( 2 );
+
+	var offsetBefore,
+		distance = 10,
+		viewportHeight = $( window ).height(),
+		element = $( "#draggable1" ).draggable({
+			scroll: true,
+			stop: function( e, ui ) {
+				equal( ui.offset.top, newY, "offset of item matches pointer position after scroll" );
+				// TODO: fix IE8 testswarm IFRAME positioning bug so closeEnough can be turned back to equal
+				closeEnough( ui.offset.top - offsetBefore.top, distance, 1, "offset of item only moves expected distance after scroll" );
+			}
+		}),
+		scrollSensitivity = element.draggable( "option", "scrollSensitivity" ),
+		oldY = viewportHeight - scrollSensitivity,
+		newY = oldY + distance;
+
+	element.offset({
+		top: oldY,
+		left: 1
+	});
+
+	offsetBefore = element.offset();
+
+	element.simulate( "drag", {
+		handle: "corner",
+		dx: 1,
+		y: newY,
+		moves: 1
+	});
+
+	TestHelpers.draggable.restoreScroll( document );
+});
+
 test( "snap, snapMode, and snapTolerance", function() {
-	expect( 9 );
+	expect( 10 );
 
 	var newX, newY,
 		snapTolerance = 15,
@@ -1123,7 +1196,9 @@ test( "snap, snapMode, and snapTolerance", function() {
 		moves: 1
 	});
 
-	deepEqual( element.offset(), { top: newY, left: newX }, "doesn't snap outside the snapTolerance" );
+	// TODO: fix IE8 testswarm IFRAME positioning bug so closeEnough can be turned back to equal
+	closeEnough( element.offset().left, newX, 1, "doesn't snap outside the snapTolerance" );
+	closeEnough( element.offset().top, newY, 1, "doesn't snap outside the snapTolerance" );
 
 	newX += 3;
 
@@ -1214,6 +1289,84 @@ test( "snap, snapMode, and snapTolerance", function() {
 	});
 
 	deepEqual( element.offset(), { top: newY, left: newX }, "doesn't snap on the inner snapTolerance area when snapMode is outer" );
+});
+
+test( "#8459: element can snap to an element that was removed during drag", function() {
+	expect( 2 );
+
+	var newX, newY,
+		snapTolerance = 15,
+		element = $( "#draggable1" ).draggable({
+			snap: true,
+			snapMode: "both",
+			snapTolerance: snapTolerance,
+			start: function() {
+				element2.remove();
+			}
+		}),
+		element2 = $( "#draggable2" ).draggable();
+
+	element.offset({
+		top: 1,
+		left: 1
+	});
+
+	newX = element2.offset().left - element.outerWidth() - snapTolerance + 1;
+	newY = element2.offset().top;
+
+	element.simulate( "drag", {
+		handle: "corner",
+		x: newX,
+		y: newY,
+		moves: 1
+	});
+
+	// Support: Opera 12.10, Safari 5.1, jQuery <1.8
+	if ( TestHelpers.draggable.unreliableContains ) {
+		ok( true, "Opera <12.14 and Safari <6.0 report wrong values for $.contains in jQuery < 1.8" );
+		ok( true, "Opera <12.14 and Safari <6.0 report wrong values for $.contains in jQuery < 1.8" );
+	} else {
+		// TODO: fix IE8 testswarm IFRAME positioning bug so closeEnough can be turned back to equal
+		closeEnough( element.offset().left, newX, 1, "doesn't snap to a removed element" );
+		closeEnough( element.offset().top, newY, 1, "doesn't snap to a removed element" );
+	}
+});
+
+test( "#8165: Snapping large rectangles to small rectangles doesn't snap properly", function() {
+	expect( 1 );
+
+	var snapTolerance = 20,
+		y = 1,
+		element = $( "#draggable1" )
+			.css({
+				width: "50px",
+				height: "200px"
+			}).offset({
+				top: y,
+				left: 1
+			}),
+		element2 = $( "#draggable2" )
+			.css({
+				width: "50px",
+				height: "50px"
+			}).offset({
+				top: y + snapTolerance + 1,
+				left: 200
+			}),
+		newX = element2.offset().left - element.outerWidth() - snapTolerance + 1;
+
+	$( "#draggable1, #draggable2" ).draggable({
+		snap: true,
+		snapTolerance: snapTolerance
+	});
+
+	element.simulate( "drag", {
+		handle: "corner",
+		x: newX,
+		moves: 1
+	});
+
+	notDeepEqual( element.offset(), { top: y, left: newX }, "snaps even if only a side (not a corner) is inside the snapTolerance" );
 });
 
 test( "stack", function() {

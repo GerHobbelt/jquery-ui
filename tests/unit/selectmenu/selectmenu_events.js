@@ -1,107 +1,135 @@
-(function ($) {
+(function ( $ ) {
 
-module("selectmenu: events", {
+module( "selectmenu: events", {
 	setup: function () {
-		this.element = $("#speed");
+		this.element = $( "#speed" );
 	}
 });
 
-test("change", function () {
-	expect(5);
+asyncTest( "change", function () {
+	expect( 5 );
+
+	var optionIndex = 1,
+		button, menu, options;
 
 	this.element.selectmenu({
-		change: function (event, ui) {
-			ok(event, "change event fired on change");
-			equal(event.type, "selectmenuchange", "event type set to selectmenuchange");
-			ok(ui, "ui object is passed as second argument to event handler");
-			equal(ui.item.element[0].nodeName, "OPTION", "ui.item.element[0] points to original option element");
-			equal(ui.item.value, value, "ui.item.value property updated correctly");
+		change: function ( event, ui ) {
+			ok( event, "change event fired on change" );
+			equal( event.type, "selectmenuchange", "event type set to selectmenuchange" );
+			equal( ui.item.index, optionIndex, "ui.item.index contains correct option index" );
+			equal( ui.item.element[ 0 ], options.eq( optionIndex )[ 0 ], "ui.item.element contains original option element" );
+			equal( ui.item.value, options.eq( optionIndex ).text(), "ui.item.value property updated correctly" );
 		}
 	});
 
-	var button = this.element.selectmenu("widget").parent(),
-		menu = this.element.selectmenu("menuWidget").parent(),
-		value = this.element.find("option").first().text();
+	button = this.element.selectmenu( "widget" );
+	menu = this.element.selectmenu( "menuWidget" ).parent();
+	options = this.element.find( "option" );
 
-	button.find("a").simulate( "focus" ).simulate( "click" );
-	menu.find("a").first().simulate( "mouseover" ).trigger( "click" );
+	button.simulate( "focus" );
+
+	setTimeout(function() {
+		button.trigger( "click" );
+		menu.find( "a" ).eq( optionIndex ).simulate( "mouseover" ).trigger( "click" );
+		start();
+	}, 1 );
 });
 
 
-test("close", function () {
-	expect(3);
+test( "close", function () {
+	expect( 4 );
 
 	this.element.selectmenu({
-		close: function (event, ui) {
-			ok(event, "close event fired on close");
-			equal(event.type, "selectmenuclose", "event type set to selectmenuclose");
-			ok(ui, "ui object is passed as second argument to event handler");
+		close: function ( event ) {
+			ok( event, "close event fired on close" );
+			equal( event.type, "selectmenuclose", "event type set to selectmenuclose" );
 		}
 	});
 
-	this.element.selectmenu("open").selectmenu("close");
+	this.element.selectmenu( "open" ).selectmenu( "close" );
+
+	this.element.selectmenu( "open" );
+	$( "body" ).trigger( "click" );
 });
 
 
-test("focus", function () {
-	expect(4);
+asyncTest( "focus", function () {
+	expect( 12 );
 
-	var counter = 0,
-		button,
-		menu;
+	var that = this,
+		optionIndex = this.element[ 0 ].selectedIndex + 1,
+		options = this.element.find( "option" ),
+		button, menu, links;
 
 	this.element.selectmenu({
-		focus: function (event, ui) {
-			counter++;
-			if (counter === 1) {
-				ok(event, "focus event fired on mouseover");
-				equal(event.type, "selectmenufocus", "event type set to selectmenufocus");
-				ok(ui, "ui object is passed as second argument to event handler");
-				equal(ui.item.element[0].nodeName, "OPTION", "ui points to original option element");
-			}
+		focus: function ( event, ui ) {
+			ok( event, "focus event fired on element #" + optionIndex + " mouseover" );
+			equal( event.type, "selectmenufocus", "event type set to selectmenufocus" );
+			equal( ui.item.index, optionIndex, "ui.item.index contains correct option index" );
+			equal( ui.item.element[ 0 ], options.eq( optionIndex )[ 0 ], "ui.item.element contains original option element" );
 		}
 	});
 
-	button = this.element.selectmenu("widget").parent();
-	menu = this.element.selectmenu("menuWidget").parent();
+	button = this.element.selectmenu( "widget" );
+	menu = this.element.selectmenu( "menuWidget" );
 
-	button.find("a").simulate( "focus" ).simulate( "click" );
-	menu.find(".ui-menu-item").simulate("mouseover");
+	button.simulate( "focus" );
+
+	setTimeout(function() {
+		button.simulate( "keydown", { keyCode: $.ui.keyCode.DOWN } );
+
+		button.trigger( "click" );
+		links = menu.find( "li.ui-menu-item a" );
+		optionIndex = 0;
+		links.eq( optionIndex ).simulate( "mouseover" );
+		optionIndex += 1;
+		links.eq( optionIndex ).simulate( "mouseover" );
+
+		// this tests for unwanted, additional focus event on close
+		that.element.selectmenu( "close" );
+		start();
+	}, 1 );
 });
 
 
-test("open", function () {
-	expect(3);
+test( "open", function () {
+	expect( 2 );
 
 	this.element.selectmenu({
-		open: function (event, ui) {
-			ok(event, "open event fired on open");
-			equal(event.type, "selectmenuopen", "event type set to selectmenuopen");
-			ok(ui, "ui object is passed as second argument to event handler");
+		open: function ( event ) {
+			ok( event, "open event fired on open" );
+			equal( event.type, "selectmenuopen", "event type set to selectmenuopen" );
 		}
 	});
 
-	this.element.selectmenu("open");
+	this.element.selectmenu( "open" );
 });
 
 
-test("select", function () {
-	expect(4);
+asyncTest( "select", function () {
+	expect( 4 );
 
 	this.element.selectmenu({
-		select: function (event, ui) {
-			ok(event, "select event fired on item select");
-			equal(event.type, "selectmenuselect", "event type set to selectmenuselect");
-			ok(ui, "ui object is passed as second argument to event handler");
-			equal(ui.item.element[0].nodeName, "OPTION", "ui points to original option element");
+		select: function ( event, ui ) {
+			ok( event, "select event fired on item select" );
+			equal( event.type, "selectmenuselect", "event type set to selectmenuselect" );
+			equal( ui.item.index, optionIndex, "ui.item.index contains correct option index" );
+			equal( ui.item.element[ 0 ], options.eq( optionIndex )[ 0 ], "ui.item.element contains original option element" );
 		}
 	});
 
-	var button = this.element.selectmenu("widget").parent(),
-		menu = this.element.selectmenu("menuWidget").parent();
+	var button = this.element.selectmenu( "widget" ),
+		menu = this.element.selectmenu( "menuWidget" ).parent(),
+		options = this.element.find( "option" ),
+		optionIndex = 1;
 
-	button.find("a").simulate( "focus" ).simulate( "click" );
-	menu.find("a").first().simulate( "mouseover" ).trigger("click");
+	button.simulate( "focus" );
+
+	setTimeout(function() {
+		button.trigger( "click" );
+		menu.find( "a" ).eq( optionIndex ).simulate( "mouseover" ).trigger( "click" );
+		start();
+	}, 1 );
 });
 
 })(jQuery);

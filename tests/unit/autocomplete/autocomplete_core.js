@@ -14,12 +14,12 @@ test( "prevent form submit on enter when menu is active", function() {
 		menu = element.autocomplete( "widget" );
 
 	event = $.Event( "keydown" );
-	event.keyCode = $.ui.keyCode.DOWN;
+	event.keyCode = event.which = $.ui.keyCode.DOWN;
 	element.trigger( event );
 	deepEqual( menu.find( ".ui-menu-item:has(.ui-state-focus)" ).length, 1, "menu item is active" );
 
 	event = $.Event( "keydown" );
-	event.keyCode = $.ui.keyCode.ENTER;
+	event.keyCode = event.which = $.ui.keyCode.ENTER;
 	element.trigger( event );
 	ok( event.isDefaultPrevented(), "default action is prevented" );
 });
@@ -36,7 +36,7 @@ test( "allow form submit on enter when menu is not active", function() {
 			.autocomplete( "search" );
 
 	event = $.Event( "keydown" );
-	event.keyCode = $.ui.keyCode.ENTER;
+	event.keyCode = event.which = $.ui.keyCode.ENTER;
 	element.trigger( event );
 	ok( !event.isDefaultPrevented(), "default action is prevented" );
 });
@@ -90,6 +90,30 @@ test( "allow form submit on enter when menu is not active", function() {
 		arrowsMoveFocus( "#autocomplete-contenteditable", false );
 	});
 
+	test( "up arrow moves cursor - input", function() {
+		arrowsNavigateElement( "#autocomplete", true, false );
+	});
+
+	test( "down arrow moves cursor - input", function() {
+		arrowsNavigateElement( "#autocomplete", false, false );
+	});
+
+	test( "up arrow moves cursor - textarea", function() {
+		arrowsNavigateElement( "#autocomplete-textarea", true, true );
+	});
+
+	test( "down arrow moves cursor - textarea", function() {
+		arrowsNavigateElement( "#autocomplete-textarea", false, true );
+	});
+
+	test( "up arrow moves cursor - contenteditable", function() {
+		arrowsNavigateElement( "#autocomplete-contenteditable", true, true );
+	});
+
+	test( "down arrow moves cursor - contenteditable", function() {
+		arrowsNavigateElement( "#autocomplete-contenteditable", false, true );
+	});
+
 	function arrowsInvokeSearch( id, isKeyUp, shouldMove ) {
 		expect( 1 );
 
@@ -99,7 +123,7 @@ test( "allow form submit on enter when menu is not active", function() {
 				delay: 0,
 				minLength: 0
 			});
-		element.data( "ui-autocomplete" )._move = function() {
+		element.autocomplete( "instance" )._move = function() {
 			didMove = true;
 		};
 		element.simulate( "keydown", { keyCode: ( isKeyUp ? $.ui.keyCode.UP : $.ui.keyCode.DOWN ) } );
@@ -114,11 +138,28 @@ test( "allow form submit on enter when menu is not active", function() {
 				delay: 0,
 				minLength: 0
 			});
-		element.data( "ui-autocomplete" )._move = function() {
+		element.autocomplete( "instance" )._move = function() {
 			ok( true, "repsond to arrow" );
 		};
 		element.autocomplete( "search" );
 		element.simulate( "keydown", { keyCode: ( isKeyUp ? $.ui.keyCode.UP : $.ui.keyCode.DOWN ) } );
+	}
+
+	function arrowsNavigateElement( id, isKeyUp, shouldMove ) {
+		expect( 1 );
+
+		var didMove = false,
+			element = $( id ).autocomplete({
+				source: [ "a" ],
+				delay: 0,
+				minLength: 0
+			});
+		element.on( "keypress", function( e ) {
+			didMove = !e.isDefaultPrevented();
+		});
+		element.simulate( "keydown", { keyCode: ( isKeyUp ? $.ui.keyCode.UP : $.ui.keyCode.DOWN ) } );
+		element.simulate( "keypress" );
+		equal( didMove, shouldMove, "respond to arrow" );
 	}
 })();
 
@@ -151,12 +192,40 @@ asyncTest( "handle race condition", function() {
 	}
 });
 
+asyncTest( "simultaneous searches (#9334)", function() {
+	expect( 2 );
+	var element = $( "#autocomplete" ).autocomplete({
+			source: function( request, response ) {
+				setTimeout(function() {
+					response([ request.term ]);
+				});
+			},
+			response: function() {
+				ok( true, "response from first instance" );
+			}
+		}),
+		element2 = $( "#autocomplete-textarea" ).autocomplete({
+			source: function( request, response ) {
+				setTimeout(function() {
+					response([ request.term ]);
+				});
+			},
+			response: function() {
+				ok( true, "response from second instance" );
+				start();
+			}
+		});
+
+	element.autocomplete( "search", "test" );
+	element2.autocomplete( "search", "test" );
+});
+
 test( "ARIA", function() {
 	expect( 7 );
 	var element = $( "#autocomplete" ).autocomplete({
 			source: [ "java", "javascript" ]
 		}),
-		liveRegion = element.data( "ui-autocomplete" ).liveRegion;
+		liveRegion = element.autocomplete( "instance" ).liveRegion;
 
 	equal( liveRegion.text(), "", "Empty live region on create" );
 
@@ -186,6 +255,16 @@ test( "ARIA", function() {
 	element.autocomplete( "search", "j" );
 	equal( liveRegion.text(), "2 results are available, use up and down arrow keys to navigate.",
 		"Live region for multiple values" );
+});
+
+test( ".replaceWith() (#9172)", function() {
+	expect( 1 );
+
+	var element = $( "#autocomplete" ).autocomplete(),
+		replacement = "<div>test</div>",
+		parent = element.parent();
+	element.replaceWith( replacement );
+	equal( parent.html().toLowerCase(), replacement );
 });
 
 }( jQuery ) );
