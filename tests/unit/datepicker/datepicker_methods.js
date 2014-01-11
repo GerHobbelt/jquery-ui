@@ -1,125 +1,130 @@
-/*
- * datepicker_methods.js
- */
-(function($) {
+(function( $ ) {
 
-module("datepicker: methods");
+module( "datepicker: methods" );
 
-test("destroy", function() {
-	expect( 33 );
+test( "destroy", function() {
+	expect( 10 );
+	var input = $( "#datepicker" ).datepicker(),
+		inline = $( "#inline" ).datepicker();
+
+	ok( input.datepicker( "instance" ), "instance created" );
+	ok( input.attr( "aria-owns" ), "aria-owns attribute added" );
+	ok( input.attr( "aria-haspopup" ), "aria-haspopup attribute added" );
+	input.datepicker( "destroy" );
+	ok( !input.datepicker( "instance" ), "instance removed" );
+	ok( !input.attr( "aria-owns" ), "aria-owns attribute removed" );
+	ok( !input.attr( "aria-haspopup" ), "aria-haspopup attribute removed" );
+
+	ok( inline.datepicker( "instance" ), "instance created" );
+	ok( inline.children().length > 0, "inline datepicker has children" );
+	inline.datepicker( "destroy" );
+	ok( !inline.datepicker( "instance" ), "instance removed" );
+	ok( inline.children().length === 0, "inline picker no longer has children" );
+});
+
+test( "enable / disable", function() {
+	expect( 6 );
 	var inl,
-		inp = TestHelpers.datepicker.init("#inp");
-	ok(inp.is(".hasDatepicker"), "Default - marker class set");
-	ok($.data(inp[0], TestHelpers.datepicker.PROP_NAME), "Default - instance present");
-	ok(inp.next().is("#alt"), "Default - button absent");
-	inp.datepicker("destroy");
-	inp = $("#inp");
-	ok(!inp.is(".hasDatepicker"), "Default - marker class cleared");
-	ok(!$.data(inp[0], TestHelpers.datepicker.PROP_NAME), "Default - instance absent");
-	ok(inp.next().is("#alt"), "Default - button absent");
-	// With button
-	inp= TestHelpers.datepicker.init("#inp", {showOn: "both"});
-	ok(inp.is(".hasDatepicker"), "Button - marker class set");
-	ok($.data(inp[0], TestHelpers.datepicker.PROP_NAME), "Button - instance present");
-	ok(inp.next().text() === "...", "Button - button added");
-	inp.datepicker("destroy");
-	inp = $("#inp");
-	ok(!inp.is(".hasDatepicker"), "Button - marker class cleared");
-	ok(!$.data(inp[0], TestHelpers.datepicker.PROP_NAME), "Button - instance absent");
-	ok(inp.next().is("#alt"), "Button - button removed");
-	// With append text
-	inp = TestHelpers.datepicker.init("#inp", {appendText: "Testing"});
-	ok(inp.is(".hasDatepicker"), "Append - marker class set");
-	ok($.data(inp[0], TestHelpers.datepicker.PROP_NAME), "Append - instance present");
-	ok(inp.next().text() === "Testing", "Append - append text added");
-	inp.datepicker("destroy");
-	inp = $("#inp");
-	ok(!inp.is(".hasDatepicker"), "Append - marker class cleared");
-	ok(!$.data(inp[0], TestHelpers.datepicker.PROP_NAME), "Append - instance absent");
-	ok(inp.next().is("#alt"), "Append - append text removed");
-	// With both
-	inp= TestHelpers.datepicker.init("#inp", {showOn: "both", buttonImageOnly: true,
-		buttonImage: "images/calendar.gif", appendText: "Testing"});
-	ok(inp.is(".hasDatepicker"), "Both - marker class set");
-	ok($.data(inp[0], TestHelpers.datepicker.PROP_NAME), "Both - instance present");
-	ok(inp.next()[0].nodeName.toLowerCase() === "img", "Both - button added");
-	ok(inp.next().next().text() === "Testing", "Both - append text added");
-	inp.datepicker("destroy");
-	inp = $("#inp");
-	ok(!inp.is(".hasDatepicker"), "Both - marker class cleared");
-	ok(!$.data(inp[0], TestHelpers.datepicker.PROP_NAME), "Both - instance absent");
-	ok(inp.next().is("#alt"), "Both - button and append text absent");
+		inp = TestHelpers.datepicker.init( "#datepicker" ),
+		dp = inp.datepicker( "widget" );
+
+	ok( !inp.datepicker( "option", "disabled" ), "initially enabled" );
+	ok( !dp.hasClass( "ui-datepicker-disabled" ), "does not have disabled class name" );
+
+	inp.datepicker( "disable" );
+	ok( inp.datepicker( "option", "disabled" ), "disabled option is set" );
+	ok( dp.hasClass( "ui-datepicker-disabled" ), "datepicker has disabled class name" );
+
+	inp.datepicker( "enable" );
+	ok( !inp.datepicker( "option", "disabled" ), "enabled after enable() call" );
+	ok( !dp.hasClass( "ui-datepicker-disabled" ), "no longer has disabled class name" );
+
 	// Inline
-	inl = TestHelpers.datepicker.init("#inl");
-	ok(inl.is(".hasDatepicker"), "Inline - marker class set");
-	ok(inl.html() !== "", "Inline - datepicker present");
-	ok($.data(inl[0], TestHelpers.datepicker.PROP_NAME), "Inline - instance present");
-	ok(inl.next().length === 0 || inl.next().is("p"), "Inline - button absent");
-	inl.datepicker("destroy");
-	inl = $("#inl");
-	ok(!inl.is(".hasDatepicker"), "Inline - marker class cleared");
-	ok(inl.html() === "", "Inline - datepicker absent");
-	ok(!$.data(inl[0], TestHelpers.datepicker.PROP_NAME), "Inline - instance absent");
-	ok(inl.next().length === 0 || inl.next().is("p"), "Inline - button absent");
+	inl = TestHelpers.datepicker.init( "#inline" );
+	dp = inl.datepicker( "instance" );
+
+	// TODO: Disabling inline pickers does not work.
+	// TODO: When changeMonth and changeYear options are implemented ensure their dropdowns
+	// are properly disabled when in an inline picker.
 });
 
-test("enableDisable", function() {
-	expect( 33 );
-	var inl, dp,
-		inp = TestHelpers.datepicker.init("#inp");
-	ok(!inp.datepicker("isDisabled"), "Enable/disable - initially marked as enabled");
-	ok(!inp[0].disabled, "Enable/disable - field initially enabled");
-	inp.datepicker("disable");
-	ok(inp.datepicker("isDisabled"), "Enable/disable - now marked as disabled");
-	ok(inp[0].disabled, "Enable/disable - field now disabled");
-	inp.datepicker("enable");
-	ok(!inp.datepicker("isDisabled"), "Enable/disable - now marked as enabled");
-	ok(!inp[0].disabled, "Enable/disable - field now enabled");
-	inp.datepicker("destroy");
-	// With a button
-	inp = TestHelpers.datepicker.init("#inp", {showOn: "button"});
-	ok(!inp.datepicker("isDisabled"), "Enable/disable button - initially marked as enabled");
-	ok(!inp[0].disabled, "Enable/disable button - field initially enabled");
-	ok(!inp.next("button")[0].disabled, "Enable/disable button - button initially enabled");
-	inp.datepicker("disable");
-	ok(inp.datepicker("isDisabled"), "Enable/disable button - now marked as disabled");
-	ok(inp[0].disabled, "Enable/disable button - field now disabled");
-	ok(inp.next("button")[0].disabled, "Enable/disable button - button now disabled");
-	inp.datepicker("enable");
-	ok(!inp.datepicker("isDisabled"), "Enable/disable button - now marked as enabled");
-	ok(!inp[0].disabled, "Enable/disable button - field now enabled");
-	ok(!inp.next("button")[0].disabled, "Enable/disable button - button now enabled");
-	inp.datepicker("destroy");
-	// With an image button
-	inp = TestHelpers.datepicker.init("#inp", {showOn: "button", buttonImageOnly: true,
-		buttonImage: "images/calendar.gif"});
-	ok(!inp.datepicker("isDisabled"), "Enable/disable image - initially marked as enabled");
-	ok(!inp[0].disabled, "Enable/disable image - field initially enabled");
-	ok(parseFloat(inp.next("img").css("opacity")) === 1, "Enable/disable image - image initially enabled");
-	inp.datepicker("disable");
-	ok(inp.datepicker("isDisabled"), "Enable/disable image - now marked as disabled");
-	ok(inp[0].disabled, "Enable/disable image - field now disabled");
-	ok(parseFloat(inp.next("img").css("opacity")) !== 1, "Enable/disable image - image now disabled");
-	inp.datepicker("enable");
-	ok(!inp.datepicker("isDisabled"), "Enable/disable image - now marked as enabled");
-	ok(!inp[0].disabled, "Enable/disable image - field now enabled");
-	ok(parseFloat(inp.next("img").css("opacity")) === 1, "Enable/disable image - image now enabled");
-	inp.datepicker("destroy");
-	// Inline
-	inl = TestHelpers.datepicker.init("#inl", {changeYear: true});
-	dp = $(".ui-datepicker-inline", inl);
-	ok(!inl.datepicker("isDisabled"), "Enable/disable inline - initially marked as enabled");
-	ok(!dp.children().is(".ui-state-disabled"), "Enable/disable inline - not visually disabled initially");
-	ok(!dp.find("select").prop("disabled"), "Enable/disable inline - form element enabled initially");
-	inl.datepicker("disable");
-	ok(inl.datepicker("isDisabled"), "Enable/disable inline - now marked as disabled");
-	ok(dp.children().is(".ui-state-disabled"), "Enable/disable inline - visually disabled");
-	ok(dp.find("select").prop("disabled"), "Enable/disable inline - form element disabled");
-	inl.datepicker("enable");
-	ok(!inl.datepicker("isDisabled"), "Enable/disable inline - now marked as enabled");
-	ok(!dp.children().is(".ui-state-disabled"), "Enable/disable inline - not visiually disabled");
-	ok(!dp.find("select").prop("disabled"), "Enable/disable inline - form element enabled");
-	inl.datepicker("destroy");
+test( "widget", function() {
+	expect( 1 );
+	var actual = $( "#datepicker" ).datepicker().datepicker( "widget" );
+	deepEqual( $("body > .ui-front" )[ 0 ],  actual[ 0 ] );
+	actual.remove();
 });
 
-})(jQuery);
+test( "close", function() {
+	expect( 0 );
+});
+
+test( "open", function() {
+	expect( 0 );
+});
+
+test( "value", function() {
+	expect( 6 );
+	var input = $( "#datepicker" ).datepicker(),
+		picker = input.datepicker( "widget" ),
+		inline = $( "#inline" ).datepicker();
+
+	input.datepicker( "value", "1/1/14" );
+	equal( input.val(), "1/1/14", "input's value set" );
+	ok( picker.find( "a[data-timestamp]:first" ).hasClass( "ui-state-focus" ),
+		"first day marked as selected" );
+	equal( input.datepicker( "value" ), "1/1/14", "getter" );
+
+	input.val( "abc" );
+	equal( input.datepicker( "value" ), "abc",
+		"Invalid values should be returned without formatting." );
+
+	inline.datepicker( "value", "1/1/14" );
+	ok( inline.find( "a[data-timestamp]:first" ).hasClass( "ui-state-focus" ),
+		"first day marked as selected" );
+	equal( inline.datepicker( "value" ), "1/1/14", "getter" );
+
+	input.datepicker( "destroy" );
+	inline.datepicker( "destroy" );
+});
+
+test( "valueAsDate", function() {
+	expect( 6 );
+	var input = $( "#datepicker" ).datepicker(),
+		picker = input.datepicker( "widget" ),
+		inline = $( "#inline" ).datepicker();
+
+	input.datepicker( "valueAsDate", new Date( 2014, 0, 1 ) );
+	equal( input.val(), "1/1/14", "input's value set" );
+	ok( picker.find( "a[data-timestamp]:first" ).hasClass( "ui-state-focus" ),
+		"first day marked as selected" );
+	TestHelpers.datepicker.equalsDate( input.datepicker( "valueAsDate" ),
+		new Date( 2014, 0, 1 ), "getter" );
+
+	input.val( "a/b/c" );
+	equal( input.datepicker( "valueAsDate" ), null, "Invalid dates return null" );
+
+	inline.datepicker( "valueAsDate", new Date( 2014, 0, 1 ) );
+	ok( inline.find( "a[data-timestamp]:first" ).hasClass( "ui-state-focus" ),
+		"first day marked as selected" );
+	TestHelpers.datepicker.equalsDate( inline.datepicker( "valueAsDate" ),
+		new Date( 2014, 0, 1 ), "getter" );
+
+	input.datepicker( "destroy" );
+	inline.datepicker( "destroy" );
+});
+
+test( "isValid", function() {
+	expect( 2 );
+	var input = $( "#datepicker" ).datepicker();
+
+	input.val( "1/1/14" );
+	ok( input.datepicker( "isValid" ) );
+
+	input.val( "1/1/abc" );
+	ok( !input.datepicker( "isValid" ) );
+
+	input.datepicker( "destroy" );
+});
+
+})( jQuery );

@@ -1,59 +1,45 @@
-/*
- * datepicker_core.js
- */
+(function( $ ) {
 
-(function($) {
-
-module( "datepicker: core", {
-	setup: function() {
-		$( "body" ).focus();
-	}
-});
+module( "datepicker: core" );
 
 TestHelpers.testJshint( "datepicker" );
 
-test("initialization - Reinitialization after body had been emptied.", function() {
-	expect( 1 );
-	var bodyContent = $("body").children(), inp = $("#inp");
-	$("#inp").datepicker();
-	$("body").empty().append(inp);
-	$("#inp").datepicker();
-	ok( $("#"+$.datepicker._mainDivId).length===1, "Datepicker container added" );
-	$("body").empty().append(bodyContent); // Returning to initial state for later tests
-});
+test( "input's value determines starting date", function() {
+	expect( 3 );
 
-test( "widget method - empty collection", function() {
-	expect( 1 );
-	$( "#nonExist" ).datepicker(); // should create nothing
-	ok( !$( "#ui-datepicker-div" ).length, "Non init on empty collection" );
-});
+	var input = $( "#datepicker" ).val( "1/1/14" ).datepicker(),
+		picker = input.datepicker( "widget" );
 
-test("widget method", function() {
-	expect( 1 );
-	var actual = $("#inp").datepicker().datepicker("widget")[0];
-	deepEqual($("body > #ui-datepicker-div:last-child")[0], actual);
+	input.datepicker( "open" );
+
+	equal( picker.find( ".ui-datepicker-month" ).html(), "January", "correct month displayed" );
+	equal( picker.find( ".ui-datepicker-year" ).html(), "2014", "correct year displayed" );
+	equal( picker.find( ".ui-state-focus" ).html(), "1", "correct day highlighted" );
+
+	input.val( "" ).datepicker( "destroy" );
 });
 
 asyncTest( "baseStructure", function() {
-	expect( 58 );
+	expect( 42 );
 	var header, title, table, thead, week, panel, inl, child,
 		inp = TestHelpers.datepicker.initNewInput(),
-		dp = $( "#ui-datepicker-div" );
+		dp = inp.datepicker( "widget" ).find( ".ui-datepicker" );
 
 	function step1() {
-		TestHelpers.datepicker.onFocus( inp, function() {
+		inp.focus();
+		setTimeout(function() {
 			ok( dp.is( ":visible" ), "Structure - datepicker visible" );
 			ok( !dp.is( ".ui-datepicker-rtl" ), "Structure - not right-to-left" );
 			ok( !dp.is( ".ui-datepicker-multi" ), "Structure - not multi-month" );
-			equal( dp.children().length, 2, "Structure - child count" );
+			equal( dp.children().length, 3, "Structure - child count (header, calendar, buttonpane)" );
 
 			header = dp.children( ":first" );
 			ok( header.is( "div.ui-datepicker-header" ), "Structure - header division" );
 			equal( header.children().length, 3, "Structure - header child count" );
-			ok( header.children( ":first" ).is( "a.ui-datepicker-prev" ) && header.children( ":first" ).html() !== "", "Structure - prev link" );
-			ok( header.children( ":eq(1)" ).is( "a.ui-datepicker-next" ) && header.children( ":eq(1)" ).html() !== "", "Structure - next link" );
+			ok( header.children( ":first" ).is( ".ui-datepicker-prev" ) && header.children( ":first" ).html() !== "", "Structure - prev link" );
+			ok( header.children( ":eq(1)" ).is( ".ui-datepicker-next" ) && header.children( ":eq(1)" ).html() !== "", "Structure - next link" );
 
-			title = header.children( ":last" );
+			title = header.children( ":last" ).children( ":first" );
 			ok( title.is( "div.ui-datepicker-title" ) && title.html() !== "","Structure - title division" );
 			equal( title.children().length, 2, "Structure - title child count" );
 			ok( title.children( ":first" ).is( "span.ui-datepicker-month" ) && title.children( ":first" ).text() !== "", "Structure - month text" );
@@ -72,10 +58,11 @@ asyncTest( "baseStructure", function() {
 			week = table.children( ":eq(1)" ).children( ":first" );
 			ok( week.is( "tr" ), "Structure - month table week row" );
 			equal( week.children().length, 7, "Structure - week child count" );
-			ok( week.children( ":first" ).is( "td.ui-datepicker-week-end" ), "Structure - month table first day cell" );
-			ok( week.children( ":last" ).is( "td.ui-datepicker-week-end" ), "Structure - month table second day cell" );
+			// TODO: Preserve these class names or let the user use :first-child and :last-child?
+			// ok( week.children( ":first" ).is( "td.ui-datepicker-week-end" ), "Structure - month table first day cell" );
+			// ok( week.children( ":last" ).is( "td.ui-datepicker-week-end" ), "Structure - month table second day cell" );
 
-			inp.datepicker( "hide" ).datepicker( "destroy" );
+			inp.datepicker( "close" ).datepicker( "destroy" );
 			step2();
 		});
 	}
@@ -87,10 +74,13 @@ asyncTest( "baseStructure", function() {
 			changeYear: true,
 			showButtonPanel: true
 		});
-		TestHelpers.datepicker.onFocus( inp, function() {
+		dp = inp.datepicker( "widget" ).find( ".ui-datepicker" );
+		inp.focus();
+		setTimeout(function() {
 			title = dp.find( "div.ui-datepicker-title" );
-			ok( title.children( ":first" ).is( "select.ui-datepicker-month" ), "Structure - month selector" );
-			ok( title.children( ":last" ).is( "select.ui-datepicker-year" ), "Structure - year selector" );
+			// TODO: Re-add tests when changeMonth and changeYear are re-implemented
+			//ok( title.children( ":first" ).is( "select.ui-datepicker-month" ), "Structure - month selector" );
+			//ok( title.children( ":last" ).is( "select.ui-datepicker-year" ), "Structure - year selector" );
 
 			panel = dp.children( ":last" );
 			ok( panel.is( "div.ui-datepicker-buttonpane" ), "Structure - button panel division" );
@@ -98,7 +88,7 @@ asyncTest( "baseStructure", function() {
 			ok( panel.children( ":first" ).is( "button.ui-datepicker-current" ), "Structure - today button" );
 			ok( panel.children( ":last" ).is( "button.ui-datepicker-close" ), "Structure - close button" );
 
-			inp.datepicker( "hide" ).datepicker( "destroy" );
+			inp.datepicker( "close" ).datepicker( "destroy" );
 			step3();
 		});
 	}
@@ -106,21 +96,25 @@ asyncTest( "baseStructure", function() {
 	function step3() {
 		// Multi-month 2
 		inp = TestHelpers.datepicker.initNewInput({ numberOfMonths: 2 });
-		TestHelpers.datepicker.onFocus( inp, function() {
+		dp = inp.datepicker( "widget" ).find( ".ui-datepicker" );
+		inp.focus();
+		setTimeout(function() {
 			ok( dp.is( ".ui-datepicker-multi" ), "Structure multi [2] - multi-month" );
-			equal( dp.children().length, 3, "Structure multi [2] - child count" );
+			equal( dp.children().length, 4, "Structure multi [2] - child count" );
 
 			child = dp.children( ":first" );
-			ok( child.is( "div.ui-datepicker-group" ) && child.is( "div.ui-datepicker-group-first" ), "Structure multi [2] - first month division" );
+			// TODO: Implement ui-datepicker-group-first class name
+			// ok( child.is( "div.ui-datepicker-group" ) && child.is( "div.ui-datepicker-group-first" ), "Structure multi [2] - first month division" );
 
 			child = dp.children( ":eq(1)" );
-			ok( child.is( "div.ui-datepicker-group" ) && child.is( "div.ui-datepicker-group-last" ), "Structure multi [2] - second month division" );
+			// TODO: Implement ui-datepicker-group-last class name
+			// ok( child.is( "div.ui-datepicker-group" ) && child.is( "div.ui-datepicker-group-last" ), "Structure multi [2] - second month division" );
 
 			child = dp.children( ":eq(2)" );
 			ok( child.is( "div.ui-datepicker-row-break" ), "Structure multi [2] - row break" );
 			ok( dp.is( ".ui-datepicker-multi-2" ), "Structure multi [2] - multi-2" );
 
-			inp.datepicker( "hide" ).datepicker( "destroy" );
+			inp.datepicker( "close" ).datepicker( "destroy" );
 			step4();
 		});
 	}
@@ -128,11 +122,13 @@ asyncTest( "baseStructure", function() {
 	function step4() {
 		// Multi-month 3
 		inp = TestHelpers.datepicker.initNewInput({ numberOfMonths: 3 });
-		TestHelpers.datepicker.onFocus( inp, function() {
+		dp = inp.datepicker( "widget" ).find( ".ui-datepicker" );
+		inp.focus();
+		setTimeout(function() {
 			ok( dp.is( ".ui-datepicker-multi-3" ), "Structure multi [3] - multi-3" );
 			ok( !dp.is( ".ui-datepicker-multi-2" ), "Structure multi [3] - Trac #6704" );
 
-			inp.datepicker( "hide" ).datepicker( "destroy" );
+			inp.datepicker( "close" ).datepicker( "destroy" );
 			step5();
 		});
 	}
@@ -140,7 +136,11 @@ asyncTest( "baseStructure", function() {
 	function step5() {
 		// Multi-month [2, 2]
 		inp = TestHelpers.datepicker.initNewInput({ numberOfMonths: [ 2, 2 ] });
-		TestHelpers.datepicker.onFocus( inp, function() {
+		dp = inp.datepicker( "widget" ).find( ".ui-datepicker" );
+		inp.focus();
+		setTimeout(function() {
+			/*
+			TODO: Re-add after array form of the numberOfMonths option is implemented.
 			ok( dp.is( ".ui-datepicker-multi" ), "Structure multi - multi-month" );
 			equal( dp.children().length, 6, "Structure multi [2,2] - child count" );
 
@@ -161,63 +161,79 @@ asyncTest( "baseStructure", function() {
 
 			child = dp.children( ":eq(5)" );
 			ok( child.is( "div.ui-datepicker-row-break" ), "Structure multi [2,2] - row break" );
-
-			inp.datepicker( "hide" ).datepicker( "destroy" );
-
-			// Inline
-			inl = TestHelpers.datepicker.init( "#inl" );
-			dp = inl.children();
-
-			ok( dp.is( ".ui-datepicker-inline" ), "Structure inline - main div" );
-			ok( !dp.is( ".ui-datepicker-rtl" ), "Structure inline - not right-to-left" );
-			ok( !dp.is( ".ui-datepicker-multi" ), "Structure inline - not multi-month" );
-			equal( dp.children().length, 2, "Structure inline - child count" );
-
-			header = dp.children( ":first" );
-			ok( header.is( "div.ui-datepicker-header" ), "Structure inline - header division" );
-			equal( header.children().length, 3, "Structure inline - header child count" );
-
-			table = dp.children( ":eq(1)" );
-			ok( table.is( "table.ui-datepicker-calendar" ), "Structure inline - month table" );
-			ok( table.children( ":first" ).is( "thead" ), "Structure inline - month table thead" );
-			ok( table.children( ":eq(1)" ).is( "tbody" ), "Structure inline - month table body" );
-
-			inl.datepicker( "destroy" );
-
-			// Inline multi-month
-			inl = TestHelpers.datepicker.init( "#inl", { numberOfMonths: 2 } );
-			dp = inl.children();
-
-			ok( dp.is( ".ui-datepicker-inline" ) && dp.is( ".ui-datepicker-multi" ), "Structure inline multi - main div" );
-			equal( dp.children().length, 3, "Structure inline multi - child count" );
-
-			child = dp.children( ":first" );
-			ok( child.is( "div.ui-datepicker-group" ) && child.is( "div.ui-datepicker-group-first" ), "Structure inline multi - first month division" );
-
-			child = dp.children( ":eq(1)" );
-			ok( child.is( "div.ui-datepicker-group" ) && child.is( "div.ui-datepicker-group-last" ), "Structure inline multi - second month division" );
-
-			child = dp.children( ":eq(2)" );
-			ok( child.is( "div.ui-datepicker-row-break" ), "Structure inline multi - row break" );
-
-			inl.datepicker( "destroy" );
-			start();
+			*/
+			inp.datepicker( "close" ).datepicker( "destroy" );
+			step6();
 		});
+	}
+
+	function step6() {
+		// Inline
+		inl = TestHelpers.datepicker.init( "#inline" );
+		dp = inl.children();
+
+		ok( dp.is( ".ui-datepicker-inline" ), "Structure inline - main div" );
+		ok( !dp.is( ".ui-datepicker-rtl" ), "Structure inline - not right-to-left" );
+		ok( !dp.is( ".ui-datepicker-multi" ), "Structure inline - not multi-month" );
+		equal( dp.children().length, 3, "Structure inline - child count (header, calendar, buttonpane)" );
+
+		header = dp.children( ":first" );
+		ok( header.is( "div.ui-datepicker-header" ), "Structure inline - header division" );
+		equal( header.children().length, 3, "Structure inline - header child count" );
+
+		table = dp.children( ":eq(1)" );
+		ok( table.is( "table.ui-datepicker-calendar" ), "Structure inline - month table" );
+		ok( table.children( ":first" ).is( "thead" ), "Structure inline - month table thead" );
+		ok( table.children( ":eq(1)" ).is( "tbody" ), "Structure inline - month table body" );
+
+		inl.datepicker( "destroy" );
+
+		step7();
+	}
+
+	function step7() {
+		// Inline multi-month
+		inl = TestHelpers.datepicker.init( "#inline", { numberOfMonths: 2 } );
+		dp = inl.datepicker( "widget" ).find( ".ui-datepicker" );
+
+		ok( dp.is( ".ui-datepicker-inline" ) && dp.is( ".ui-datepicker-multi" ), "Structure inline multi - main div" );
+		equal( dp.children().length, 4, "Structure inline multi - child count" );
+
+		child = dp.children( ":first" );
+		// TODO: Implement ui-datepicker-group-first class name
+		// ok( child.is( "div.ui-datepicker-group" ) && child.is( "div.ui-datepicker-group-first" ), "Structure inline multi - first month division" );
+
+		child = dp.children( ":eq(1)" );
+		// TODO: Implement ui-datepicker-group-last class name
+		// ok( child.is( "div.ui-datepicker-group" ) && child.is( "div.ui-datepicker-group-last" ), "Structure inline multi - second month division" );
+
+		child = dp.children( ":eq(2)" );
+		ok( child.is( "div.ui-datepicker-row-break" ), "Structure inline multi - row break" );
+
+		inl.datepicker( "destroy" );
+		start();
 	}
 
 	step1();
 });
 
 asyncTest( "customStructure", function() {
-	expect( 20 );
+	expect( 0 );
+
 	var header, panel, title, thead,
-		inp = TestHelpers.datepicker.initNewInput( $.datepicker.regional.he ),
-		dp = $( "#ui-datepicker-div" );
+		inp = TestHelpers.datepicker.initNewInput(),
+		dp = inp.datepicker( "widget" ).find( ".ui-datepicker" );
+
+	// Skip these tests for now as none are implemented yet.
+	start();
+	return;
 
 	function step1() {
-		inp.datepicker( "option", "showButtonPanel", true );
+		/*
+		Globalize.culture( "he" );
+		inp.focus();
 
-		TestHelpers.datepicker.onFocus( inp, function() {
+		setTimeout(function() {
 			ok( dp.is( ".ui-datepicker-rtl" ), "Structure RTL - right-to-left" );
 
 			header = dp.children( ":first" );
@@ -232,13 +248,17 @@ asyncTest( "customStructure", function() {
 			ok( panel.children( ":first" ).is( "button.ui-datepicker-close" ), "Structure RTL - close button" );
 			ok( panel.children( ":last" ).is( "button.ui-datepicker-current" ), "Structure RTL - today button" );
 
-			inp.datepicker( "hide" ).datepicker( "destroy" );
+			inp.datepicker( "close" ).datepicker( "destroy" );
+			Globalize.culture( "en-US" );
 			step2();
 		});
+		*/
 	}
 
 	// Hide prev/next
-	function step2() {
+	// TODO: If we decide the hideIfNoPrevNext option is being removed these tests can be as well.
+	/*
+	function stepX() {
 		inp = TestHelpers.datepicker.initNewInput({
 			hideIfNoPrevNext: true,
 			minDate: new Date( 2008, 2 - 1, 4 ),
@@ -256,47 +276,40 @@ asyncTest( "customStructure", function() {
 			step3();
 		});
 	}
+	*/
 
 	// Changeable Month with read-only year
-	function step3() {
+	function step2() {
 		inp = TestHelpers.datepicker.initNewInput({ changeMonth: true });
+		dp = inp.datepicker( "widget" ).find( ".ui-datepicker" );
 
-		TestHelpers.datepicker.onFocus( inp, function() {
+		inp.focus();
+		setTimeout(function() {
 			title = dp.children( ":first" ).children( ":last" );
-			equal( title.children().length, 2, "Structure changeable month - title child count" );
-			ok( title.children( ":first" ).is( "select.ui-datepicker-month" ), "Structure changeable month - month selector" );
-			ok( title.children( ":last" ).is( "span.ui-datepicker-year" ), "Structure changeable month - read-only year" );
 
-			inp.datepicker( "hide" ).datepicker( "destroy" );
-			step4();
+			// TODO: Implement changeMonth option
+			// equal( title.children().length, 2, "Structure changeable month - title child count" );
+			// ok( title.children( ":first" ).is( "select.ui-datepicker-month" ), "Structure changeable month - month selector" );
+			// ok( title.children( ":last" ).is( "span.ui-datepicker-year" ), "Structure changeable month - read-only year" );
+
+			inp.datepicker( "close" ).datepicker( "destroy" );
+			step3();
 		});
 	}
 
 	// Changeable year with read-only month
-	function step4() {
+	function step3() {
 		inp = TestHelpers.datepicker.initNewInput({ changeYear: true });
 
 		TestHelpers.datepicker.onFocus( inp, function() {
 			title = dp.children( ":first" ).children( ":last" );
-			equal( title.children().length, 2, "Structure changeable year - title child count" );
-			ok( title.children( ":first" ).is( "span.ui-datepicker-month" ), "Structure changeable year - read-only month" );
-			ok( title.children( ":last" ).is( "select.ui-datepicker-year" ), "Structure changeable year - year selector" );
 
-			inp.datepicker( "hide" ).datepicker( "destroy" );
-			step5();
-		});
-	}
+			// TODO: Implement changeYear option
+			// equal( title.children().length, 2, "Structure changeable year - title child count" );
+			// ok( title.children( ":first" ).is( "span.ui-datepicker-month" ), "Structure changeable year - read-only month" );
+			// ok( title.children( ":last" ).is( "select.ui-datepicker-year" ), "Structure changeable year - year selector" );
 
-	// Read-only first day of week
-	function step5() {
-		inp = TestHelpers.datepicker.initNewInput({ changeFirstDay: false });
-
-		TestHelpers.datepicker.onFocus( inp, function() {
-			thead = dp.find( ".ui-datepicker-calendar thead tr" );
-			equal( thead.children().length, 7, "Structure read-only first day - thead child count" );
-			equal( thead.find( "a" ).length, 0, "Structure read-only first day - thead links count" );
-
-			inp.datepicker( "hide" ).datepicker( "destroy" );
+			inp.datepicker( "close" ).datepicker( "destroy" );
 			start();
 		});
 	}
@@ -307,222 +320,395 @@ asyncTest( "customStructure", function() {
 	setTimeout( step1 );
 });
 
-test("keystrokes", function() {
-	expect( 26 );
-	var inp = TestHelpers.datepicker.init("#inp"),
+test( "Keyboard handling", function() {
+	expect( 9 );
+	var input = $( "#datepicker" ).datepicker(),
+		instance = input.datepicker( "instance" ),
 		date = new Date();
-	inp.val("").datepicker("show").
-		simulate("keydown", {keyCode: $.ui.keyCode.ENTER});
-	TestHelpers.datepicker.equalsDate(inp.datepicker("getDate"), date, "Keystroke enter");
-	inp.val("02/04/2008").datepicker("show").
-		simulate("keydown", {keyCode: $.ui.keyCode.ENTER});
-	TestHelpers.datepicker.equalsDate(inp.datepicker("getDate"), new Date(2008, 2 - 1, 4),
-		"Keystroke enter - preset");
-	inp.val("02/04/2008").datepicker("show").
-		simulate("keydown", {ctrlKey: true, keyCode: $.ui.keyCode.HOME}).
-		simulate("keydown", {keyCode: $.ui.keyCode.ENTER});
-	TestHelpers.datepicker.equalsDate(inp.datepicker("getDate"), date, "Keystroke ctrl+home");
-	inp.val("02/04/2008").datepicker("show").
-		simulate("keydown", {ctrlKey: true, keyCode: $.ui.keyCode.END});
-	ok(inp.datepicker("getDate") == null, "Keystroke ctrl+end");
-	inp.val("").datepicker("show").
-		simulate("keydown", {keyCode: $.ui.keyCode.ESCAPE});
-	ok(inp.datepicker("getDate") == null, "Keystroke esc");
-	inp.val("02/04/2008").datepicker("show").
-		simulate("keydown", {keyCode: $.ui.keyCode.ESCAPE});
-	TestHelpers.datepicker.equalsDate(inp.datepicker("getDate"), new Date(2008, 2 - 1, 4),
-		"Keystroke esc - preset");
-	inp.val("02/04/2008").datepicker("show").
-		simulate("keydown", {ctrlKey: true, keyCode: $.ui.keyCode.PAGE_UP}).
-		simulate("keydown", {keyCode: $.ui.keyCode.ESCAPE});
-	TestHelpers.datepicker.equalsDate(inp.datepicker("getDate"), new Date(2008, 2 - 1, 4),
-		"Keystroke esc - abandoned");
-	// Moving by day or week
-	inp.val("").datepicker("show").
-		simulate("keydown", {ctrlKey: true, keyCode: $.ui.keyCode.LEFT}).
-		simulate("keydown", {keyCode: $.ui.keyCode.ENTER});
-	date.setDate(date.getDate() - 1);
-	TestHelpers.datepicker.equalsDate(inp.datepicker("getDate"), date, "Keystroke ctrl+left");
-	inp.val("").datepicker("show").
-		simulate("keydown", {keyCode: $.ui.keyCode.LEFT}).
-		simulate("keydown", {keyCode: $.ui.keyCode.ENTER});
-	date.setDate(date.getDate() + 1);
-	TestHelpers.datepicker.equalsDate(inp.datepicker("getDate"), date, "Keystroke left");
-	inp.val("").datepicker("show").
-		simulate("keydown", {ctrlKey: true, keyCode: $.ui.keyCode.RIGHT}).
-		simulate("keydown", {keyCode: $.ui.keyCode.ENTER});
-	date.setDate(date.getDate() + 1);
-	TestHelpers.datepicker.equalsDate(inp.datepicker("getDate"), date, "Keystroke ctrl+right");
-	inp.val("").datepicker("show").
-		simulate("keydown", {keyCode: $.ui.keyCode.RIGHT}).
-		simulate("keydown", {keyCode: $.ui.keyCode.ENTER});
-	date.setDate(date.getDate() - 1);
-	TestHelpers.datepicker.equalsDate(inp.datepicker("getDate"), date, "Keystroke right");
-	inp.val("").datepicker("show").
-		simulate("keydown", {ctrlKey: true, keyCode: $.ui.keyCode.UP}).
-		simulate("keydown", {keyCode: $.ui.keyCode.ENTER});
-	date.setDate(date.getDate() - 7);
-	TestHelpers.datepicker.equalsDate(inp.datepicker("getDate"), date, "Keystroke ctrl+up");
-	inp.val("").datepicker("show").
-		simulate("keydown", {keyCode: $.ui.keyCode.UP}).
-		simulate("keydown", {keyCode: $.ui.keyCode.ENTER});
-	date.setDate(date.getDate() + 7);
-	TestHelpers.datepicker.equalsDate(inp.datepicker("getDate"), date, "Keystroke up");
-	inp.val("").datepicker("show").
-		simulate("keydown", {ctrlKey: true, keyCode: $.ui.keyCode.DOWN}).
-		simulate("keydown", {keyCode: $.ui.keyCode.ENTER});
-	date.setDate(date.getDate() + 7);
-	TestHelpers.datepicker.equalsDate(inp.datepicker("getDate"), date, "Keystroke ctrl+down");
-	inp.val("").datepicker("show").
-		simulate("keydown", {keyCode: $.ui.keyCode.DOWN}).
-		simulate("keydown", {keyCode: $.ui.keyCode.ENTER});
-	date.setDate(date.getDate() - 7);
-	TestHelpers.datepicker.equalsDate(inp.datepicker("getDate"), date, "Keystroke down");
-	// Moving by month or year
-	inp.val("02/04/2008").datepicker("show").
-		simulate("keydown", {keyCode: $.ui.keyCode.PAGE_UP}).
-		simulate("keydown", {keyCode: $.ui.keyCode.ENTER});
-	TestHelpers.datepicker.equalsDate(inp.datepicker("getDate"), new Date(2008, 1 - 1, 4),
-		"Keystroke pgup");
-	inp.val("02/04/2008").datepicker("show").
-		simulate("keydown", {keyCode: $.ui.keyCode.PAGE_DOWN}).
-		simulate("keydown", {keyCode: $.ui.keyCode.ENTER});
-	TestHelpers.datepicker.equalsDate(inp.datepicker("getDate"), new Date(2008, 3 - 1, 4),
-		"Keystroke pgdn");
-	inp.val("02/04/2008").datepicker("show").
-		simulate("keydown", {ctrlKey: true, keyCode: $.ui.keyCode.PAGE_UP}).
-		simulate("keydown", {keyCode: $.ui.keyCode.ENTER});
-	TestHelpers.datepicker.equalsDate(inp.datepicker("getDate"), new Date(2007, 2 - 1, 4),
-		"Keystroke ctrl+pgup");
-	inp.val("02/04/2008").datepicker("show").
-		simulate("keydown", {ctrlKey: true, keyCode: $.ui.keyCode.PAGE_DOWN}).
-		simulate("keydown", {keyCode: $.ui.keyCode.ENTER});
-	TestHelpers.datepicker.equalsDate(inp.datepicker("getDate"), new Date(2009, 2 - 1, 4),
-		"Keystroke ctrl+pgdn");
+
+	input.datepicker( "open" )
+		.simulate( "keydown", { keyCode: $.ui.keyCode.ENTER });
+	TestHelpers.datepicker.equalsDate( input.datepicker( "valueAsDate" ), date, "Keystroke enter" );
+
+	// Enter = Select today's date by default
+	input.val( "1/1/14" ).datepicker( "open" )
+		.simulate("keydown", { keyCode: $.ui.keyCode.ENTER });
+	TestHelpers.datepicker.equalsDate( input.datepicker( "valueAsDate" ), new Date( 2014, 0, 1 ),
+		"Keystroke enter - preset" );
+
+	// Control + Home = Change the calendar to the current month
+	input.val( "1/1/14" ).datepicker( "open" )
+		.simulate( "keydown", { ctrlKey: true, keyCode: $.ui.keyCode.HOME })
+		.simulate( "keydown", { keyCode: $.ui.keyCode.ENTER });
+	TestHelpers.datepicker.equalsDate( input.datepicker( "valueAsDate" ), date, "Keystroke ctrl+home" );
+
+	// Control + End = Close the calendar and clear the input
+	input.val( "1/1/14" ).datepicker( "open" )
+		.simulate( "keydown", { ctrlKey: true, keyCode: $.ui.keyCode.END });
+	equal( input.val(), "", "Keystroke ctrl+end" );
+
+	input.val( "" ).datepicker( "open" );
+	ok( instance.isOpen, "datepicker is open before escape" );
+	input.simulate( "keydown", { keyCode: $.ui.keyCode.ESCAPE });
+	ok( !instance.isOpen, "escape closes the datepicker" );
+
+	input.val( "1/1/14" ).datepicker( "open" )
+		.simulate( "keydown", { keyCode: $.ui.keyCode.ESCAPE });
+	TestHelpers.datepicker.equalsDate( input.datepicker( "valueAsDate" ), new Date( 2014, 0, 1 ),
+		"Keystroke esc - preset" );
+
+	input.val( "1/1/14" ).datepicker( "open" )
+		.simulate( "keydown", { ctrlKey: true, keyCode: $.ui.keyCode.PAGE_UP })
+		.simulate( "keydown", { keyCode: $.ui.keyCode.ESCAPE });
+	TestHelpers.datepicker.equalsDate( input.datepicker( "valueAsDate" ), new Date( 2014, 0, 1 ),
+		"Keystroke esc - abandoned" );
+
+	input.val( "1/2/14" )
+		.simulate( "keyup" );
+	TestHelpers.datepicker.equalsDate( input.datepicker( "valueAsDate" ), new Date( 2014, 0, 2 ),
+		"Picker updated as user types into input" );
+
+	input.datepicker( "destroy" );
+});
+
+asyncTest( "keyboard handling", function() {
+	expect( 14 );
+	var picker,
+		input = $( "#datepicker" ),
+		date = new Date();
+
+	function step1() {
+		input.datepicker();
+		picker = input.datepicker( "widget" );
+		ok( !picker.is( ":visible" ), "datepicker closed" );
+		input.val( "" )
+			.simulate( "keydown", { keyCode: $.ui.keyCode.DOWN });
+
+		setTimeout(function() {
+			ok( picker.is( ":visible" ), "Keystroke down opens datepicker" );
+			input.datepicker( "destroy" );
+			step2();
+		});
+	};
+
+	function step2() {
+		input.datepicker();
+		picker = input.datepicker( "widget" )
+		ok( !picker.is( ":visible" ), "datepicker closed" );
+		input.val( "" )
+			.simulate( "keydown", { keyCode: $.ui.keyCode.UP });
+
+		setTimeout(function() {
+			ok( picker.is( ":visible" ), "Keystroke up opens datepicker" );
+			input.datepicker( "destroy" );
+			step3();
+		});
+	};
+
+	function step3() {
+		input.datepicker()
+			.val( "1/1/14" )
+			.simulate( "keydown", { keyCode: $.ui.keyCode.DOWN });
+
+		setTimeout(function() {
+			$( ":focus" )
+				.simulate( "keydown", { keyCode: $.ui.keyCode.LEFT })
+				.simulate( "keydown", { keyCode: $.ui.keyCode.ENTER });
+			date = new Date( 2013, 12 - 1, 31 );
+			TestHelpers.datepicker.equalsDate( input.datepicker( "valueAsDate" ), date,
+				"Keystroke left to switch to previous day" );
+
+			input.datepicker( "destroy" );
+			step4();
+		}, 100 );
+	};
+
+	function step4() {
+		input.datepicker()
+			.val( "1/1/14" )
+			.simulate( "keydown", { keyCode: $.ui.keyCode.DOWN });
+
+		setTimeout(function() {
+			$( ":focus" )
+				.simulate( "keydown", { keyCode: $.ui.keyCode.RIGHT })
+				.simulate( "keydown", { keyCode: $.ui.keyCode.ENTER });
+			date = new Date( 2014, 1 - 1, 2 );
+			TestHelpers.datepicker.equalsDate( input.datepicker( "valueAsDate" ), date,
+				"Keystroke right to switch to next day" );
+
+			input.datepicker( "destroy" );
+			step5();
+		}, 100 );
+	};
+
+	function step5() {
+		input.datepicker()
+			.val( "1/1/14" )
+			.simulate( "keydown", { keyCode: $.ui.keyCode.DOWN });
+
+		setTimeout(function() {
+			$( ":focus" )
+				.simulate( "keydown", { keyCode: $.ui.keyCode.UP })
+				.simulate( "keydown", { keyCode: $.ui.keyCode.ENTER });
+			date = new Date( 2013, 12 - 1, 25 );
+			TestHelpers.datepicker.equalsDate( input.datepicker( "valueAsDate" ), date,
+				"Keystroke up to move to the previous week" );
+
+			input.datepicker( "destroy" );
+			step6();
+		}, 100 );
+	};
+
+	function step6() {
+		input.datepicker()
+			.val( "1/1/14" )
+			.simulate( "keydown", { keyCode: $.ui.keyCode.DOWN });
+
+		setTimeout(function() {
+			$( ":focus" )
+				.simulate( "keydown", { keyCode: $.ui.keyCode.DOWN })
+				.simulate( "keydown", { keyCode: $.ui.keyCode.ENTER });
+			date = new Date( 2014, 1 - 1, 8 );
+			TestHelpers.datepicker.equalsDate( input.datepicker( "valueAsDate" ), date,
+				"Keystroke down to move to the next week" );
+
+			input.datepicker( "destroy" );
+			step7();
+		}, 100 );
+	};
+
+	function step7() {
+		input.datepicker()
+			.val( "1/1/14" )
+			.simulate( "keydown", { keyCode: $.ui.keyCode.DOWN });
+
+		setTimeout(function() {
+			$( ":focus" )
+				.simulate( "keydown", { keyCode: $.ui.keyCode.PAGE_UP })
+				.simulate( "keydown", { keyCode: $.ui.keyCode.ENTER });
+			date = new Date( 2013, 12 - 1, 1 );
+			TestHelpers.datepicker.equalsDate( input.datepicker( "valueAsDate" ), date,
+				"Keystroke Page Up moves date to previous month" );
+
+			input.datepicker( "destroy" );
+			step8();
+		}, 100 );
+	};
+
+	function step8() {
+		input.datepicker()
+			.val( "1/1/14" )
+			.simulate( "keydown", { keyCode: $.ui.keyCode.DOWN });
+
+		setTimeout(function() {
+			$( ":focus" )
+				.simulate( "keydown", { keyCode: $.ui.keyCode.PAGE_UP, altKey: true })
+				.simulate( "keydown", { keyCode: $.ui.keyCode.ENTER });
+			date = new Date( 2013, 1 - 1, 1 );
+			TestHelpers.datepicker.equalsDate( input.datepicker( "valueAsDate" ), date,
+				"Keystroke Page Up + Ctrl moves date to previous year" );
+
+			input.datepicker( "destroy" );
+			step9();
+		}, 100 );
+	};
+
+	function step9() {
+		input.datepicker()
+			.val( "1/1/14" )
+			.simulate( "keydown", { keyCode: $.ui.keyCode.DOWN });
+
+		setTimeout(function() {
+			$( ":focus" )
+				.simulate( "keydown", { keyCode: $.ui.keyCode.PAGE_DOWN })
+				.simulate( "keydown", { keyCode: $.ui.keyCode.ENTER });
+			date = new Date( 2014, 2 - 1, 1 );
+			TestHelpers.datepicker.equalsDate( input.datepicker( "valueAsDate" ), date,
+				"Keystroke Page Down moves date to next month" );
+
+			input.datepicker( "destroy" );
+			step10();
+		}, 100 );
+	};
+
+	function step10() {
+		input.datepicker()
+			.val( "1/1/14" )
+			.simulate( "keydown", { keyCode: $.ui.keyCode.DOWN });
+
+		setTimeout(function() {
+			$( ":focus" )
+				.simulate( "keydown", { keyCode: $.ui.keyCode.PAGE_DOWN, altKey: true })
+				.simulate( "keydown", { keyCode: $.ui.keyCode.ENTER });
+			date = new Date( 2015, 1 - 1, 1 );
+			TestHelpers.datepicker.equalsDate( input.datepicker( "valueAsDate" ), date,
+				"Keystroke Page Down + Ctrl moves date to next year" );
+
+			input.datepicker( "destroy" );
+			step11();
+		}, 100 );
+	};
+
 	// Check for moving to short months
-	inp.val("03/31/2008").datepicker("show").
-		simulate("keydown", {keyCode: $.ui.keyCode.PAGE_UP}).
-		simulate("keydown", {keyCode: $.ui.keyCode.ENTER});
-	TestHelpers.datepicker.equalsDate(inp.datepicker("getDate"), new Date(2008, 2 - 1, 29),
-		"Keystroke pgup - Feb");
-	inp.val("01/30/2008").datepicker("show").
-		simulate("keydown", {keyCode: $.ui.keyCode.PAGE_DOWN}).
-		simulate("keydown", {keyCode: $.ui.keyCode.ENTER});
-	TestHelpers.datepicker.equalsDate(inp.datepicker("getDate"), new Date(2008, 2 - 1, 29),
-		"Keystroke pgdn - Feb");
-	inp.val("02/29/2008").datepicker("show").
-		simulate("keydown", {ctrlKey: true, keyCode: $.ui.keyCode.PAGE_UP}).
-		simulate("keydown", {keyCode: $.ui.keyCode.ENTER});
-	TestHelpers.datepicker.equalsDate(inp.datepicker("getDate"), new Date(2007, 2 - 1, 28),
-		"Keystroke ctrl+pgup - Feb");
-	inp.val("02/29/2008").datepicker("show").
-		simulate("keydown", {ctrlKey: true, keyCode: $.ui.keyCode.PAGE_DOWN}).
-		simulate("keydown", {keyCode: $.ui.keyCode.ENTER});
-	TestHelpers.datepicker.equalsDate(inp.datepicker("getDate"), new Date(2009, 2 - 1, 28),
-		"Keystroke ctrl+pgdn - Feb");
-	// Goto current
-	inp.datepicker("option", {gotoCurrent: true}).
-		datepicker("hide").val("02/04/2008").datepicker("show").
-		simulate("keydown", {keyCode: $.ui.keyCode.PAGE_DOWN}).
-		simulate("keydown", {ctrlKey: true, keyCode: $.ui.keyCode.HOME}).
-		simulate("keydown", {keyCode: $.ui.keyCode.ENTER});
-	TestHelpers.datepicker.equalsDate(inp.datepicker("getDate"), new Date(2008, 2 - 1, 4),
-		"Keystroke ctrl+home");
-	// Change steps
-	inp.datepicker("option", {stepMonths: 2, gotoCurrent: false}).
-		datepicker("hide").val("02/04/2008").datepicker("show").
-		simulate("keydown", {keyCode: $.ui.keyCode.PAGE_UP}).
-		simulate("keydown", {keyCode: $.ui.keyCode.ENTER});
-	TestHelpers.datepicker.equalsDate(inp.datepicker("getDate"), new Date(2007, 12 - 1, 4),
-		"Keystroke pgup step 2");
-	inp.val("02/04/2008").datepicker("show").
-		simulate("keydown", {keyCode: $.ui.keyCode.PAGE_DOWN}).
-		simulate("keydown", {keyCode: $.ui.keyCode.ENTER});
-	TestHelpers.datepicker.equalsDate(inp.datepicker("getDate"), new Date(2008, 4 - 1, 4),
-		"Keystroke pgdn step 2");
+	function step11() {
+		input.datepicker()
+			.val( "3/31/14" )
+			.simulate( "keydown", { keyCode: $.ui.keyCode.DOWN });
+
+		setTimeout(function() {
+			$( ":focus" )
+				.simulate( "keydown", { keyCode: $.ui.keyCode.PAGE_UP })
+				.simulate( "keydown", { keyCode: $.ui.keyCode.ENTER });
+			date = new Date( 2014, 2 - 1, 28 );
+			TestHelpers.datepicker.equalsDate( input.datepicker( "valueAsDate" ), date,
+				"Keystroke Page Up and short months" );
+
+			input.datepicker( "destroy" );
+			step12();
+		}, 100 );
+	};
+
+	function step12() {
+		input.datepicker()
+			.val( "1/30/16" )
+			.simulate( "keydown", { keyCode: $.ui.keyCode.DOWN });
+
+		setTimeout(function() {
+			$( ":focus" )
+				.simulate( "keydown", { keyCode: $.ui.keyCode.PAGE_DOWN })
+				.simulate( "keydown", { keyCode: $.ui.keyCode.ENTER });
+			date = new Date( 2016, 2 - 1, 29 );
+			TestHelpers.datepicker.equalsDate( input.datepicker( "valueAsDate" ), date,
+				"Keystroke Page Down and leap years" );
+
+			input.datepicker( "destroy" );
+			start();
+		}, 100 );
+	};
+
+	step1();
 });
 
-test("mouse", function() {
-	expect( 15 );
-	var inl,
-		inp = TestHelpers.datepicker.init("#inp"),
-		dp = $("#ui-datepicker-div"),
+/*
+	// TODO: Re-add tests if we implement a stepMonths option
+	input.datepicker( "option", { stepMonths: 2, gotoCurrent: false })
+		.datepicker( "close" ).val( "02/04/2008" ).datepicker( "open" )
+		.late( "keydown", { keyCode: $.ui.keyCode.PAGE_UP })
+		.simulate( "keydown", { keyCode: $.ui.keyCode.ENTER });
+	TestHelpers.datepicker.equalsDate( input.datepicker( "valueAsDate" ), new Date( 2007, 12 - 1, 4 ),
+		"Keystroke pgup step 2" );
+
+	input.val( "02/04/2008" ).datepicker( "open" )
+		.simulate( "keydown", { keyCode: $.ui.keyCode.PAGE_DOWN })
+		.simulate( "keydown", { keyCode: $.ui.keyCode.ENTER });
+	TestHelpers.datepicker.equalsDate( input.datepicker( "valueAsDate" ), new Date( 2008, 4 - 1, 4 ),
+		"Keystroke pgdn step 2" );
+*/
+
+test( "mouse", function() {
+	expect( 13 );
+	var input = $( "#datepicker" ).datepicker(),
+		picker = input.datepicker( "widget" ),
+		inline = $( "#inline" ).datepicker,
 		date = new Date();
-	inp.val("").datepicker("show");
-	$(".ui-datepicker-calendar tbody a:contains(10)", dp).simulate("click", {});
-	date.setDate(10);
-	TestHelpers.datepicker.equalsDate(inp.datepicker("getDate"), date, "Mouse click");
-	inp.val("02/04/2008").datepicker("show");
-	$(".ui-datepicker-calendar tbody a:contains(12)", dp).simulate("click", {});
-	TestHelpers.datepicker.equalsDate(inp.datepicker("getDate"), new Date(2008, 2 - 1, 12),
-		"Mouse click - preset");
-	inp.val("02/04/2008").datepicker("show");
-	inp.val("").datepicker("show");
-	$("button.ui-datepicker-close", dp).simulate("click", {});
-	ok(inp.datepicker("getDate") == null, "Mouse click - close");
-	inp.val("02/04/2008").datepicker("show");
-	$("button.ui-datepicker-close", dp).simulate("click", {});
-	TestHelpers.datepicker.equalsDate(inp.datepicker("getDate"), new Date(2008, 2 - 1, 4),
-		"Mouse click - close + preset");
-	inp.val("02/04/2008").datepicker("show");
-	$("a.ui-datepicker-prev", dp).simulate("click", {});
-	$("button.ui-datepicker-close", dp).simulate("click", {});
-	TestHelpers.datepicker.equalsDate(inp.datepicker("getDate"), new Date(2008, 2 - 1, 4),
-		"Mouse click - abandoned");
+
+	input.val( "" ).datepicker( "open" );
+	$( ".ui-datepicker-calendar tbody a:contains(10)", picker ).simulate( "mousedown", {} );
+	date.setDate( 10 );
+	TestHelpers.datepicker.equalsDate( input.datepicker( "valueAsDate" ), date, "Mouse click" );
+
+	input.val( "2/4/08" ).datepicker( "open" );
+	$( ".ui-datepicker-calendar tbody a:contains(12)", picker ).simulate( "mousedown", {} );
+	TestHelpers.datepicker.equalsDate( input.datepicker("valueAsDate"), new Date( 2008, 2 - 1, 12 ),
+		"Mouse click - preset") ;
+
+	input.val( "" ).datepicker( "open" );
+	$( "button.ui-datepicker-close", picker ).simulate( "click", {} );
+	ok( input.datepicker( "valueAsDate" ) == null, "Mouse click - close" );
+
+	input.val( "2/4/08" ).datepicker( "open" );
+	$( "button.ui-datepicker-close", picker ).simulate( "click", {} );
+	TestHelpers.datepicker.equalsDate( input.datepicker( "valueAsDate" ), new Date( 2008, 2 - 1, 4 ),
+		"Mouse click - close + preset" );
+
+	input.val( "2/4/08" ).datepicker( "open" );
+	$( "a.ui-datepicker-prev", picker ).simulate( "click", {} );
+	$( "button.ui-datepicker-close", picker ).simulate( "click", {} );
+	TestHelpers.datepicker.equalsDate( input.datepicker( "valueAsDate" ), new Date( 2008, 2 - 1, 4 ),
+		"Mouse click - abandoned" );
+
 	// Current/previous/next
-	inp.val("02/04/2008").datepicker("option", {showButtonPanel: true}).datepicker("show");
-	$(".ui-datepicker-current", dp).simulate("click", {});
-	$(".ui-datepicker-calendar tbody a:contains(14)", dp).simulate("click", {});
-	date.setDate(14);
-	TestHelpers.datepicker.equalsDate(inp.datepicker("getDate"), date, "Mouse click - current");
-	inp.val("02/04/2008").datepicker("show");
-	$(".ui-datepicker-prev", dp).simulate("click");
-	$(".ui-datepicker-calendar tbody a:contains(16)", dp).simulate("click");
-	TestHelpers.datepicker.equalsDate(inp.datepicker("getDate"), new Date(2008, 1 - 1, 16),
-		"Mouse click - previous");
-	inp.val("02/04/2008").datepicker("show");
-	$(".ui-datepicker-next", dp).simulate("click");
-	$(".ui-datepicker-calendar tbody a:contains(18)", dp).simulate("click");
-	TestHelpers.datepicker.equalsDate(inp.datepicker("getDate"), new Date(2008, 3 - 1, 18),
-		"Mouse click - next");
+	input.val( "" ).datepicker( "open" );
+	$( ".ui-datepicker-current", picker ).simulate( "click", {} );
+	date.setDate( new Date().getDate() );
+	TestHelpers.datepicker.equalsDate( input.datepicker( "valueAsDate" ), date, "Mouse click - current" );
+
+	input.val( "2/4/08" ).datepicker( "open" );
+	$( ".ui-datepicker-prev", picker ).simulate( "click" );
+	$( ".ui-datepicker-calendar tbody a:contains(16)", picker ).simulate( "mousedown" );
+	TestHelpers.datepicker.equalsDate( input.datepicker( "valueAsDate" ), new Date( 2008, 1 - 1, 16 ),
+		"Mouse click - previous" );
+
+	input.val( "2/4/08" ).datepicker( "open" );
+	$(".ui-datepicker-next", picker ).simulate( "click" );
+	$(".ui-datepicker-calendar tbody a:contains(18)", picker ).simulate( "mousedown" );
+	TestHelpers.datepicker.equalsDate( input.datepicker("valueAsDate"), new Date( 2008, 3 - 1, 18 ),
+		"Mouse click - next" );
+
+	/*
+	// TODO: Re-add when min and max options are introduced.
 	// Previous/next with minimum/maximum
-	inp.datepicker("option", {minDate: new Date(2008, 2 - 1, 2),
-		maxDate: new Date(2008, 2 - 1, 26)}).val("02/04/2008").datepicker("show");
-	$(".ui-datepicker-prev", dp).simulate("click");
-	$(".ui-datepicker-calendar tbody a:contains(16)", dp).simulate("click");
-	TestHelpers.datepicker.equalsDate(inp.datepicker("getDate"), new Date(2008, 2 - 1, 16),
-		"Mouse click - previous + min/max");
-	inp.val("02/04/2008").datepicker("show");
-	$(".ui-datepicker-next", dp).simulate("click");
-	$(".ui-datepicker-calendar tbody a:contains(18)", dp).simulate("click");
-	TestHelpers.datepicker.equalsDate(inp.datepicker("getDate"), new Date(2008, 2 - 1, 18),
-		"Mouse click - next + min/max");
+	input.datepicker("option", {
+		minDate: new Date( 2008, 2 - 1, 2 ),
+		maxDate: new Date( 2008, 2 - 1, 26 )
+	}).val( "2/4/08" ).datepicker( "open" );
+	$( ".ui-datepicker-prev", picker ).simulate( "click" );
+	$( ".ui-datepicker-calendar tbody a:contains(16)", picker ).simulate( "mousedown" );
+	TestHelpers.datepicker.equalsDate( input.datepicker( "valueAsDate" ), new Date( 2008, 2 - 1, 16 ),
+		"Mouse click - previous + min/max" );
+
+	input.val( "2/4/08" ).datepicker( "open" );
+	$( ".ui-datepicker-next", picker ).simulate( "click" );
+	$( ".ui-datepicker-calendar tbody a:contains(18)", picker ).simulate( "mousedown" );
+	TestHelpers.datepicker.equalsDate(input.datepicker( "valueAsDate" ), new Date( 2008, 2 - 1, 18 ),
+		"Mouse click - next + min/max" );
+	*/
+
 	// Inline
-	inl = TestHelpers.datepicker.init("#inl");
-	dp = $(".ui-datepicker-inline", inl);
+	inline = TestHelpers.datepicker.init( "#inline" );
+	picker = $( ".ui-datepicker-inline", inline );
 	date = new Date();
-	inl.datepicker("setDate", date);
-	$(".ui-datepicker-calendar tbody a:contains(10)", dp).simulate("click", {});
-	date.setDate(10);
-	TestHelpers.datepicker.equalsDate(inl.datepicker("getDate"), date, "Mouse click inline");
-	inl.datepicker("option", {showButtonPanel: true}).datepicker("setDate", new Date(2008, 2 - 1, 4));
-	$(".ui-datepicker-calendar tbody a:contains(12)", dp).simulate("click", {});
-	TestHelpers.datepicker.equalsDate(inl.datepicker("getDate"), new Date(2008, 2 - 1, 12), "Mouse click inline - preset");
-	inl.datepicker("option", {showButtonPanel: true});
-	$(".ui-datepicker-current", dp).simulate("click", {});
-	$(".ui-datepicker-calendar tbody a:contains(14)", dp).simulate("click", {});
-	date.setDate(14);
-	TestHelpers.datepicker.equalsDate(inl.datepicker("getDate"), date, "Mouse click inline - current");
-	inl.datepicker("setDate", new Date(2008, 2 - 1, 4));
-	$(".ui-datepicker-prev", dp).simulate("click");
-	$(".ui-datepicker-calendar tbody a:contains(16)", dp).simulate("click");
-	TestHelpers.datepicker.equalsDate(inl.datepicker("getDate"), new Date(2008, 1 - 1, 16),
-		"Mouse click inline - previous");
-	inl.datepicker("setDate", new Date(2008, 2 - 1, 4));
-	$(".ui-datepicker-next", dp).simulate("click");
-	$(".ui-datepicker-calendar tbody a:contains(18)", dp).simulate("click");
-	TestHelpers.datepicker.equalsDate(inl.datepicker("getDate"), new Date(2008, 3 - 1, 18),
-		"Mouse click inline - next");
+	inline.datepicker( "valueAsDate", date );
+	$( ".ui-datepicker-calendar tbody a:contains(10)", picker ).simulate( "mousedown", {} );
+	date.setDate( 10 );
+	TestHelpers.datepicker.equalsDate( inline.datepicker( "valueAsDate" ), date, "Mouse click inline" );
+
+	inline.datepicker( "option", { showButtonPanel: true })
+		.datepicker( "valueAsDate", new Date( 2008, 2 - 1, 4 ));
+	$( ".ui-datepicker-calendar tbody a:contains(12)", picker ).simulate( "mousedown", {} );
+	TestHelpers.datepicker.equalsDate( inline.datepicker( "valueAsDate" ), new Date( 2008, 2 - 1, 12 ),
+		"Mouse click inline - preset" );
+
+	inline.datepicker("option", { showButtonPanel: true });
+	$( ".ui-datepicker-current", picker ).simulate( "click", {} );
+	$( ".ui-datepicker-calendar tbody a:contains(14)", picker ).simulate( "mousedown", {} );
+	date.setDate( 14 );
+	TestHelpers.datepicker.equalsDate( inline.datepicker( "valueAsDate" ), date, "Mouse click inline - current" );
+
+	inline.datepicker( "valueAsDate", new Date( 2008, 2 - 1, 4) );
+	$( ".ui-datepicker-prev", picker ).simulate( "click" );
+	$( ".ui-datepicker-calendar tbody a:contains(16)", picker ).simulate( "mousedown" );
+	TestHelpers.datepicker.equalsDate( inline.datepicker( "valueAsDate" ), new Date( 2008, 1 - 1, 16 ),
+		"Mouse click inline - previous" );
+
+	inline.datepicker( "valueAsDate", new Date( 2008, 2 - 1, 4) );
+	$( ".ui-datepicker-next", picker ).simulate( "click" );
+	$( ".ui-datepicker-calendar tbody a:contains(18)", picker ).simulate( "mousedown" );
+	TestHelpers.datepicker.equalsDate( inline.datepicker( "valueAsDate" ), new Date( 2008, 3 - 1, 18 ),
+		"Mouse click inline - next" );
+
+	input.datepicker( "destroy" );
+	inline.datepicker( "destroy" );
 });
 
-})(jQuery);
+})( jQuery );
