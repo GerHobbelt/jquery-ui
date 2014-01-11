@@ -668,7 +668,7 @@ $.extend(Datepicker.prototype, {
 
 		if ($.datepicker._get(inst, "constrainInput")) {
 			chars = $.datepicker._possibleChars($.datepicker._get(inst, "dateFormat"));
-			chr = String.fromCharCode(event.charCode == null ? event.which : event.charCode);
+			chr = String.fromCharCode(event.charCode == null ? event.keyCode : event.charCode);
 			return event.ctrlKey || event.metaKey || (chr < " " || !chars || chars.indexOf(chr) > -1);
 		}
 	},

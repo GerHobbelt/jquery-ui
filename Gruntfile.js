@@ -165,7 +165,7 @@ grunt.initConfig({
 	htmllint: {
 		// ignore files that contain invalid html, used only for ajax content testing
 		all: grunt.file.expand( [ "demos/**/*.html", "tests/**/*.html" ] ).filter(function( file ) {
-			return !/(?:ajax\/content\d\.html|tabs\/data\/test\.html|tests\/unit\/core\/core\.html)/.test( file );
+			return !/(?:ajax\/content\d\.html|tabs\/data\/test\.html|tests\/unit\/core\/core.*\.html)/.test( file );
 		})
 	},
 	copy: {
@@ -298,7 +298,7 @@ grunt.initConfig({
 		files: grunt.file.expandFiles( "tests/unit/**/*.html" ).filter(function( file ) {
 			// disabling everything that doesn't (quite) work with PhantomJS for now
 			// TODO except for all|index|test, try to include more as we go
-			return !( /(all|index|test|dialog|dialog_deprecated|timepicker|tabs|tooltip)\.html$/ ).test( file );
+			return !( /(all|index|test|dialog|dialog_deprecated|timepicker|tabs|tooltip|draggable)\.html$/ ).test( file );
 		})
 	},
 	lint: {
@@ -341,7 +341,7 @@ grunt.initConfig({
 	}
 });
 
-grunt.registerTask( "default", "lint csslint htmllint qunit" );
+grunt.registerTask( "default", [ "lint", "test" ]);
 grunt.registerTask( "lint", [ "asciilint", "jshint", "jscs", "csslint", "htmllint" ]);
 grunt.registerTask( "test", [ "qunit" ]);
 grunt.registerTask( "sizer", "concat:ui min:dist/jquery-ui.min.js compare_size:all" );
