@@ -211,7 +211,7 @@ $.widget( "ui.accordion", {
 	},
 
 	_panelKeyDown: function( event ) {
-		if ( event.keyCode === $.ui.keyCode.UP && event.ctrlKey ) {
+		if ( event.which === $.ui.keyCode.UP && event.ctrlKey ) {
 			$( event.currentTarget ).prev().focus();
 		}
 	},

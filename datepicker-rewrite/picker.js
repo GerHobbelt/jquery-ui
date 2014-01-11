@@ -91,7 +91,7 @@ $.widget( "ui.datepicker", {
 		this._createTmpl();
 	},
 	_handleKeydown: function( event ) {
-		if ( jQuery.inArray( event.keyCode, [ 13, 33, 34, 35, 36, 37, 38, 39, 40 ] ) === -1 ) {
+		if ( jQuery.inArray( event.which, [ 13, 33, 34, 35, 36, 37, 38, 39, 40 ] ) === -1 ) {
 			//only interested navigation keys
 			return;
 		}
@@ -102,7 +102,7 @@ $.widget( "ui.datepicker", {
 			oldYear = this.date.year();
 
 		// TODO: Handle for pickers with multiple months
-		switch ( event.keyCode ) {
+		switch ( event.which ) {
 			case $.ui.keyCode.ENTER:
 				activeCell.children( "a:first" ).mousedown();
 				return;
@@ -168,7 +168,7 @@ $.widget( "ui.datepicker", {
 
 		this._on({
 			keydown: function( event ) {
-				switch ( event.keyCode ) {
+				switch ( event.which ) {
 					case $.ui.keyCode.TAB:
 						// Waiting for close() will make popup hide too late, which breaks tab key behavior
 						this.picker.hide();
@@ -232,7 +232,7 @@ $.widget( "ui.datepicker", {
 			},
 			// TODO on TAB (or shift TAB), make sure it ends up on something useful in DOM order
 			keyup: function( event ) {
-				if ( event.keyCode === $.ui.keyCode.ESCAPE && this.picker.is( ":visible" ) ) {
+				if ( event.which === $.ui.keyCode.ESCAPE && this.picker.is( ":visible" ) ) {
 					this.close( event );
 					this._focusTrigger();
 				}

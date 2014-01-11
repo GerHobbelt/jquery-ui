@@ -58,7 +58,7 @@ $.widget( "ui.menubar", {
 
 				// If we are in a nested sub-sub-menu and we see an ESCAPE
 				// we must close recursively.
-				if ( event.keyCode === $.ui.keyCode.ESCAPE &&
+				if ( event.which === $.ui.keyCode.ESCAPE &&
 						this.active &&
 						this.active.menu( "collapse", event ) !== true ) {
 					active = this.active;
@@ -126,7 +126,7 @@ $.widget( "ui.menubar", {
 				if ( menu.is( ":hidden" ) ) {
 					return;
 				}
-				switch ( event.keyCode ) {
+				switch ( event.which ) {
 				case $.ui.keyCode.LEFT:
 					// TODO why can't this call menubar.previous()?
 					parentButton = menubar.active.prev( ".ui-button" );
@@ -231,7 +231,7 @@ $.widget( "ui.menubar", {
 
 			this._on( anItem, {
 				keydown: function( event ) {
-					switch ( event.keyCode ) {
+					switch ( event.which ) {
 					case $.ui.keyCode.SPACE:
 					case $.ui.keyCode.UP:
 					case $.ui.keyCode.DOWN:
@@ -274,10 +274,10 @@ $.widget( "ui.menubar", {
 					}
 				},
 				keydown: function( event ) {
-					if ( event.keyCode === $.ui.keyCode.LEFT ) {
+					if ( event.which === $.ui.keyCode.LEFT ) {
 						this.previous( event );
 						event.preventDefault();
-					} else if ( event.keyCode === $.ui.keyCode.RIGHT ) {
+					} else if ( event.which === $.ui.keyCode.RIGHT ) {
 						this.next( event );
 						event.preventDefault();
 					}
