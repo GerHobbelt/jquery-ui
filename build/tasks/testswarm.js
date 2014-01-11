@@ -4,6 +4,7 @@ module.exports = function( grunt ) {
 
 var versions = {
 		"git": "git",
+		"1.10": "1.10.0 1.10.1 1.10.2",
 		"1.9": "1.9.0 1.9.1",
 		"1.8": "1.8.0 1.8.1 1.8.2 1.8.3",
 		"1.7": "1.7 1.7.1 1.7.2",
@@ -20,6 +21,7 @@ var versions = {
 		"Draggable": "draggable/draggable.html",
 		"Droppable": "droppable/droppable.html",
 		"Effects": "effects/effects.html",
+		"Mask": "mask/mask.html",
 		"Menu": "menu/menu.html",
 		"Position": "position/position.html",
 		"Progressbar": "progressbar/progressbar.html",
@@ -30,6 +32,7 @@ var versions = {
 		"Sortable": "sortable/sortable.html",
 		"Spinner": "spinner/spinner.html",
 		"Tabs": "tabs/tabs.html",
+		"Timepicker": "timepicker/timepicker.html",
 		"Tooltip": "tooltip/tooltip.html",
 		"Widget": "widget/widget.html"
 	};

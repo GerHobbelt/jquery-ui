@@ -174,7 +174,7 @@ $.widget( "ui.tabs", {
 			return;
 		}
 
-		switch ( event.keyCode ) {
+		switch ( event.which ) {
 			case $.ui.keyCode.RIGHT:
 			case $.ui.keyCode.DOWN:
 				selectedIndex++;
@@ -232,7 +232,7 @@ $.widget( "ui.tabs", {
 		}
 
 		// Ctrl+up moves focus to the current tab
-		if ( event.ctrlKey && event.keyCode === $.ui.keyCode.UP ) {
+		if ( event.ctrlKey && event.which === $.ui.keyCode.UP ) {
 			event.preventDefault();
 			this.active.focus();
 		}
@@ -240,11 +240,11 @@ $.widget( "ui.tabs", {
 
 	// Alt+page up/down moves focus to the previous/next tab (and activates)
 	_handlePageNav: function( event ) {
-		if ( event.altKey && event.keyCode === $.ui.keyCode.PAGE_UP ) {
+		if ( event.altKey && event.which === $.ui.keyCode.PAGE_UP ) {
 			this._activate( this._focusNextTab( this.options.active - 1, false ) );
 			return true;
 		}
-		if ( event.altKey && event.keyCode === $.ui.keyCode.PAGE_DOWN ) {
+		if ( event.altKey && event.which === $.ui.keyCode.PAGE_DOWN ) {
 			this._activate( this._focusNextTab( this.options.active + 1, true ) );
 			return true;
 		}
@@ -489,11 +489,7 @@ $.widget( "ui.tabs", {
 	},
 
 	_setupEvents: function( event ) {
-		var events = {
-			click: function( event ) {
-				event.preventDefault();
-			}
-		};
+		var events = {};
 		if ( event ) {
 			$.each( event.split(" "), function( index, eventName ) {
 				events[ eventName ] = "_eventHandler";
@@ -501,6 +497,12 @@ $.widget( "ui.tabs", {
 		}
 
 		this._off( this.anchors.add( this.tabs ).add( this.panels ) );
+		// Always prevent the default action, even when disabled
+		this._on( true, this.anchors, {
+			click: function( event ) {
+				event.preventDefault();
+			}
+		});
 		this._on( this.anchors, events );
 		this._on( this.tabs, { keydown: "_tabKeydown" } );
 		this._on( this.panels, { keydown: "_panelKeydown" } );

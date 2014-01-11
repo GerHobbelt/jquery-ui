@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<script>
+jquery_script_basedir = "../tests";
+	</script>
+	<script src="../tests/jquery.js"></script>
+	<script src="../ui/jquery.ui.core.js"></script>
+	<script src="../ui/jquery.ui.widget.js"></script>
+	<script src="../ui/jquery.ui.button.js"></script>
+	<script src="../ui/jquery.ui.position.js"></script>
+	<script src="../external/globalize.js"></script>
+	<script src="../external/globalize.culture.de-DE.js"></script>
+	<script src="../external/globalize.culture.ja-JP.js"></script>
+	<script src="localization.js"></script>
+	<script src="date.js"></script>
+	<script src="picker.js"></script>
+	<link rel="stylesheet" href="../themes/base/jquery.ui.all.css">
+	<title>jQuery UI Datepicker Rewrite</title>
+	<style>
+		body { font:62.5% Verdana,Arial,sans-serif; }
+		.ui-datepicker-multi-3 { width: 51em !important; }
+
+		.ui-datepicker-calendar a.ui-state-focus {
+			text-decoration: underline;
+		}
+	</style>
+</head>
+<body>
+	<select id="culture">
+		<option value="en">en</option>
+		<option value="de-DE">de-DE</option>
+		<option value="ja-JP">ja-JP</option>
+	</select>
+	<input id="inline-output" />
+	<h2>Accessibility Enabled Template:</h2>
+	<p>Inline Date Picker:</p>
+	<div id="datepicker-inline-default"></div>
+	<p>Popup Datepicker:</p>
+	<label for="datepickerPopup1">Date of Birth</label> <input id="datepickerPopup1" type="text" aria-describedby="datepickerPopupInstruction" />
+	<p id="datepickerPopupInstruction">Press up or down to move focus to date picker grid. Cusor up/down/left/right to navigate days. Page up/down to switch months, hold alt key to switch years. Enter to select.</p>
+
+	<h2>Older Templates:</h2>
+	<div id="datepicker-inline-multi"></div>
+	<div id="datepicker-inline"></div>
+	<input id="datepicker" type="text" />
+	<input id="datepicker2" type="text" />
+	<input id="datepicker3" type="text" />
+	<script>
+		$( function() {
+			$( "#culture" ).change( function() {
+				Globalize.culture( $( this ).val() );
+				$( ":ui-datepicker" ).datepicker( "refresh" );
+			});
+
+
+			$( "#datepicker-inline-default" ).datepicker( {
+				select: function( event, ui ) {
+					$( "#inline-output" ).val( ui.date );
+				}
+			});
+			$( "#datepicker-inline-multi" ).datepicker( {
+				numberOfMonths: 3,
+				select: function( event, ui ) {
+					$( "#inline-output" ).val( ui.date );
+				}
+			});
+			$( "#datepicker-inline" ).datepicker( {
+				showWeek: true,
+				select: function( event, ui ) {
+					$( "#inline-output" ).val( ui.date );
+				},
+				eachDay: function( day ) {
+					if ( day.lead && day.date > 20 ) {
+						day.selectable = false;
+						day.render = true;
+						day.title = "These are the days of last month";
+						day.extraClasses = "ui-state-disabled";
+					}
+					if ( day.lead && day.date < 3 ) {
+						day.selectable = true;
+						day.render = true;
+						day.extraClasses = "ui-state-disabled";
+					}
+					if ( day.date == 1 ) {
+						day.extraClasses = "ui-state-error";
+						day.title = "Something bad explaining the error highlight";
+					}
+					if ( day.today ) {
+						day.title = "A good day!";
+					}
+				}
+			});
+			$( "#datepicker, #datepicker2, #datepickerPopup1" ).datepicker();
+
+			var input = $("#datepicker3");
+			var button = $("<button>").insertAfter(input);
+			var picker = $("<div>").css( {
+				position: "absolute"
+			}).datepicker({
+				select: function(event, ui) {
+					input.val(ui.date);
+					picker.datepicker("close");
+				},
+				position: {
+					of: input
+				}
+			}).insertAfter(input).hide();
+			button.click(function() {
+				picker.datepicker("open");
+			});
+		});
+	</script>
+</body>
+</html>
