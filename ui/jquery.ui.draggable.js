@@ -306,8 +306,7 @@ $.widget("ui.draggable", $.ui.mouse, {
 
 	_setHandleClassName: function() {
 		this._removeHandleClassName();
-		$( this.options.handle ? this.options.handle : this.element )
-			.addClass( "ui-draggable-handle" );
+		$( this.options.handle || this.element ).addClass( "ui-draggable-handle" );
 	},
 
 	_removeHandleClassName: function() {
@@ -420,6 +419,8 @@ $.widget("ui.draggable", $.ui.mouse, {
 		var over, c, ce,
 			o = this.options,
 			document = this.document[ 0 ];
+
+		this.relative_container = null;
 
 		if ( !o.containment ) {
 			this.containment = null;
