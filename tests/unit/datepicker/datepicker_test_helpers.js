@@ -15,13 +15,12 @@ TestHelpers.datepicker = {
 		equal(d1.toString(), d2.toString(), message);
 	},
 	init: function( id, options ) {
-		options = $.extend( { show: false }, options || {} );
-		return $( id ).datepicker( options );
+		$.datepicker.setDefaults( $.datepicker.regional[ "" ] );
+		return $( id ).datepicker( $.extend( { showAnim: "" }, options || {} ) );
 	},
 	initNewInput: function( options ) {
-		options = $.extend( { show: false }, options || {} );
-		return $( "<input>" ).datepicker( options )
-			.appendTo( "#qunit-fixture" );
+		var id = $( "<input>" ).appendTo( "#qunit-fixture" );
+		return TestHelpers.datepicker.init( id, options );
 	},
 	onFocus: TestHelpers.onFocus,
 	PROP_NAME: "datepicker"

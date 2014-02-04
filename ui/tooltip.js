@@ -315,7 +315,7 @@ return $.widget( "ui.tooltip", {
 
 		events = {
 			keyup: function( event ) {
-				if ( event.which === $.ui.keyCode.ESCAPE ) {
+				if ( event.keyCode === $.ui.keyCode.ESCAPE ) {
 					var fakeEvent = $.Event(event);
 					fakeEvent.currentTarget = target[0];
 					this.close( fakeEvent, true );

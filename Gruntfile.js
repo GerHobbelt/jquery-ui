@@ -32,8 +32,6 @@ var
 		"datepicker",
 		"dialog",
 		"menu",
-		"menubar",
-		"popup",
 		"progressbar",
 		"resizable",
 		"selectable",
@@ -109,7 +107,6 @@ grunt.loadNpmTasks( "grunt-contrib-concat" );
 grunt.loadNpmTasks( "grunt-contrib-qunit" );
 grunt.loadNpmTasks( "grunt-contrib-csslint" );
 grunt.loadNpmTasks( "grunt-jscs-checker" );
-grunt.loadNpmTasks( "grunt-css" );
 grunt.loadNpmTasks( "grunt-html" );
 grunt.loadNpmTasks( "grunt-compare-size" );
 grunt.loadNpmTasks( "grunt-git-authors" );
@@ -185,7 +182,7 @@ grunt.initConfig({
 		files: expandFiles( "tests/unit/**/*.html" ).filter(function( file ) {
 			// disabling everything that doesn't (quite) work with PhantomJS for now
 			// TODO except for all|index|test, try to include more as we go
-			return !( /(all|index|test|dialog|dialog_deprecated|datepicker|timepicker|tooltip)\.html$/ ).test( file );
+			return !( /(all|index|test|dialog|tooltip)\.html$/ ).test( file );
 		})
 	},
 	jshint: {
@@ -207,6 +204,7 @@ grunt.initConfig({
 			}
 		}
 	},
+
 	esformatter: {
 		options: {
 			preset: "jquery"
@@ -223,7 +221,7 @@ grunt.initConfig({
 	}
 });
 
-grunt.registerTask( "default", [ "lint", "test", "concat", "uglify", "compare_size" ]);
+grunt.registerTask( "default", [ "lint", "test" ]);
 grunt.registerTask( "lint", [ "asciilint", "jshint", "jscs", "csslint", "htmllint" ]);
 grunt.registerTask( "test", [ "qunit" ]);
 grunt.registerTask( "sizer", [ "concat:ui", "uglify:main", "compare_size:all" ]);

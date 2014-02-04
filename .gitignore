@@ -1,12 +1,3 @@
 dist
 node_modules
-docs
-.project
-*~
-*.bak
-*.diff
-*.patch
-.DS_Store
-.settings
-
-.sizecache.json 
+.sizecache.json
