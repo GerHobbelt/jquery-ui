@@ -7,16 +7,21 @@ TestHelpers.datepicker = {
 	},
 	equalsDate: function(d1, d2, message) {
 		if (!d1 || !d2) {
-			ok(false, message + ' - missing date');
+			ok(false, message + " - missing date");
 			return;
 		}
 		d1 = new Date(d1.getFullYear(), d1.getMonth(), d1.getDate());
 		d2 = new Date(d2.getFullYear(), d2.getMonth(), d2.getDate());
 		equal(d1.toString(), d2.toString(), message);
 	},
-	init: function(id, options) {
-		$.datepicker.setDefaults($.datepicker.regional['']);
-		return $(id).datepicker($.extend({showAnim: ''}, options || {}));
+	init: function( id, options ) {
+		$.datepicker.setDefaults( $.datepicker.regional[ "" ] );
+		return $( id ).datepicker( $.extend( { showAnim: "" }, options || {} ) );
 	},
-	PROP_NAME: 'datepicker'
+	initNewInput: function( options ) {
+		var id = $( "<input>" ).appendTo( "#qunit-fixture" );
+		return TestHelpers.datepicker.init( id, options );
+	},
+	onFocus: TestHelpers.onFocus,
+	PROP_NAME: "datepicker"
 };

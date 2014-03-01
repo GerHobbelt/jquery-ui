@@ -1,15 +1,18 @@
 #!/usr/bin/env node
-/*global cat:true cd:true echo:true exec:true exit:true*/
+/* global cat:true, cd:true, echo:true, exec:true, exit:true */
+
+// Usage:
+// stable release: node release.js
+// pre-release: node release.js --pre-release {version}
+// test run: node release.js --remote={repo}
+// - repo: "/tmp/repo" (filesystem), "user/repo" (github), "http://mydomain/repo.git" (another domain)
 
 "use strict";
 
-var baseDir, repoDir, prevVersion, newVersion, nextVersion, tagTime,
+var baseDir, downloadBuilder, repoDir, prevVersion, newVersion, nextVersion, tagTime, preRelease, repo,
 	fs = require( "fs" ),
 	path = require( "path" ),
-	// support: node <0.8
-	existsSync = fs.existsSync || path.existsSync,
 	rnewline = /\r?\n/,
-	repo = "git@github.com:jquery/jquery-ui.git",
 	branch = "master";
 
 walk([
@@ -24,7 +27,8 @@ walk([
 	confirm,
 
 	section( "building release" ),
-	buildRelease,
+	buildReleaseBranch,
+	buildPackage,
 
 	section( "pushing tag" ),
 	confirmReview,
@@ -46,8 +50,6 @@ walk([
 	section( "updating trac" ),
 	updateTrac,
 	confirm
-
-	// TODO: upload release zip to GitHub
 ]);
 
 
@@ -65,9 +67,6 @@ function cloneRepo() {
 
 	echo( "Installing dependencies..." );
 	if ( exec( "npm install" ).code !== 0 ) {
-		abort( "Error installing dependencies." );
-	}
-	if ( exec( "npm install download.jqueryui.com" ).code !== 0 ) {
 		abort( "Error installing dependencies." );
 	}
 	echo();
@@ -104,31 +103,33 @@ function getVersions() {
 		abort( "The version must be a pre version." );
 	}
 
-	newVersion = currentVersion.substr( 0, currentVersion.length - 3 );
-	parts = newVersion.split( "." );
-	major = parseInt( parts[ 0 ], 10 );
-	minor = parseInt( parts[ 1 ], 10 );
-	patch = parseInt( parts[ 2 ], 10 );
+	if ( preRelease ) {
+		newVersion = preRelease;
+		// Note: prevVersion is not currently used for pre-releases.
+		prevVersion = nextVersion = currentVersion;
+	} else {
+		newVersion = currentVersion.substr( 0, currentVersion.length - 3 );
+		parts = newVersion.split( "." );
+		major = parseInt( parts[ 0 ], 10 );
+		minor = parseInt( parts[ 1 ], 10 );
+		patch = parseInt( parts[ 2 ], 10 );
 
-	// TODO: handle 2.0.0
-	if ( minor === 0 ) {
-		abort( "This script is not smart enough to handle the 2.0.0 release." );
-	}
+		if ( minor === 0 && patch === 0 ) {
+			abort( "This script is not smart enough to handle major release (eg. 2.0.0)." );
+		} else if ( patch === 0 ) {
+			prevVersion = git( "for-each-ref --count=1 --sort=-authordate --format='%(refname:short)' refs/tags/" + [ major, minor - 1 ].join( "." ) + "*" ).trim();
+		} else {
+			prevVersion = [ major, minor, patch - 1 ].join( "." );
+		}
 
-	prevVersion = patch === 0 ?
-		[ major, minor - 1, 0 ].join( "." ) :
-		[ major, minor, patch - 1 ].join( "." );
-	// TODO: Remove version hack after 1.9.0 release
-	if ( prevVersion === "1.8.0" ) {
-		prevVersion = "1.8";
+		nextVersion = [ major, minor, patch + 1 ].join( "." ) + "pre";
 	}
-	nextVersion = [ major, minor, patch + 1 ].join( "." ) + "pre";
 
 	echo( "We are going from " + prevVersion.cyan + " to " + newVersion.cyan + "." );
 	echo( "After the release, the version will be " + nextVersion.cyan + "." );
 }
 
-function buildRelease() {
+function buildReleaseBranch() {
 	var pkg;
 
 	echo( "Creating " + "release".cyan + " branch..." );
@@ -150,12 +151,6 @@ function buildRelease() {
 	}
 	echo();
 
-	echo( "Building release..." );
-	if ( exec( "grunt release_cdn" ).code !== 0 ) {
-		abort( "Error building release." );
-	}
-	echo();
-
 	echo( "Committing release artifacts..." );
 	git( "add *.jquery.json", "Error adding manifest files to git." );
 	git( "commit -am 'Tagging the " + newVersion + " release.'",
@@ -167,12 +162,184 @@ function buildRelease() {
 	tagTime = git( "log -1 --format='%ad'", "Error getting tag timestamp." ).trim();
 }
 
+function buildPackage( callback ) {
+	if( preRelease ) {
+		return buildPreReleasePackage( callback );
+	} else {
+		return buildCDNPackage( callback );
+	}
+}
+
+function buildPreReleasePackage( callback ) {
+	var build, files, jqueryUi, packer, target, targetZip;
+
+	echo( "Build pre-release Package" );
+
+	jqueryUi = new downloadBuilder.JqueryUi( path.resolve( "." ) );
+	build = new downloadBuilder.Builder( jqueryUi, ":all:" );
+	packer = new downloadBuilder.Packer( build, null, {
+		addTests: true,
+		bundleSuffix: "",
+		skipDocs: true,
+		skipTheme: true
+	});
+	target = "../" + jqueryUi.pkg.name + "-" + jqueryUi.pkg.version;
+	targetZip = target + ".zip";
+
+	return walk([
+		function( callback ) {
+			echo( "Building release files" );
+			packer.pack(function( error, _files ) {
+				if( error ) {
+					abort( error.stack );
+				}
+				files = _files.map(function( file ) {
+
+					// Strip first path
+					file.path = file.path.replace( /^[^\/]*\//, "" );
+					return file;
+
+				}).filter(function( file ) {
+
+					// Filter development-bundle content only
+					return (/^development-bundle/).test( file.path );
+				}).map(function( file ) {
+
+					// Strip development-bundle
+					file.path = file.path.replace( /^development-bundle\//, "" );
+					return file;
+
+				});
+				return callback();
+			});
+		},
+		function() {
+			downloadBuilder.util.createZip( files, targetZip, function( error ) {
+				if ( error ) {
+					abort( error.stack );
+				}
+				echo( "Built zip package at " + path.relative( "../..", targetZip ).cyan );
+				return callback();
+			});
+		}
+	]);
+}
+
+function buildCDNPackage( callback ) {
+	var build, output, target, targetZip,
+		add = function( file ) {
+			output.push( file );
+		},
+		jqueryUi = new downloadBuilder.JqueryUi( path.resolve( "." ) ),
+		themeGallery = downloadBuilder.themeGallery( jqueryUi );
+
+	echo( "Build CDN Package" );
+
+	build = new downloadBuilder.Builder( jqueryUi, ":all:" );
+	output = [];
+	target = "../" + jqueryUi.pkg.name + "-" + jqueryUi.pkg.version + "-cdn";
+	targetZip = target + ".zip";
+
+	[ "AUTHORS.txt", "MIT-LICENSE.txt", "package.json" ].map(function( name ) {
+		return build.get( name );
+	}).forEach( add );
+
+	// "ui/*.js"
+	build.componentFiles.filter(function( file ) {
+		return (/^ui\//).test( file.path );
+	}).forEach( add );
+
+	// "ui/*.min.js"
+	build.componentMinFiles.filter(function( file ) {
+		return (/^ui\//).test( file.path );
+	}).forEach( add );
+
+	// "i18n/*.js"
+	build.i18nFiles.rename( /^ui\//, "" ).forEach( add );
+	build.i18nMinFiles.rename( /^ui\//, "" ).forEach( add );
+	build.bundleI18n.into( "i18n/" ).forEach( add );
+	build.bundleI18nMin.into( "i18n/" ).forEach( add );
+
+	build.bundleJs.forEach( add );
+	build.bundleJsMin.forEach( add );
+
+	walk( themeGallery.map(function( theme ) {
+		return function( callback ) {
+			var themeCssOnlyRe, themeDirRe,
+				folderName = theme.folderName(),
+				packer = new downloadBuilder.Packer( build, theme, {
+					skipDocs: true
+				});
+			// TODO improve code by using custom packer instead of download packer (Packer)
+			themeCssOnlyRe = new RegExp( "development-bundle/themes/" + folderName + "/jquery.ui.theme.css" );
+			themeDirRe = new RegExp( "css/" + folderName );
+			packer.pack(function( error, files ) {
+				if ( error ) {
+					abort( error.stack );
+				}
+				// Add theme files.
+				files
+					// Pick only theme files we need on the bundle.
+					.filter(function( file ) {
+						if ( themeCssOnlyRe.test( file.path ) || themeDirRe.test( file.path ) ) {
+							return true;
+						}
+						return false;
+					})
+					// Convert paths the way bundle needs
+					.map(function( file ) {
+						file.path = file.path
+
+							// Remove initial package name eg. "jquery-ui-1.10.0.custom"
+							.split( "/" ).slice( 1 ).join( "/" )
+
+							.replace( /development-bundle\/themes/, "css" )
+							.replace( /css/, "themes" )
+
+							// Make jquery-ui-1.10.0.custom.css into jquery-ui.css, or jquery-ui-1.10.0.custom.min.css into jquery-ui.min.css
+							.replace( /jquery-ui-.*?(\.min)*\.css/, "jquery-ui$1.css" );
+
+						return file;
+					}).forEach( add );
+				return callback();
+			});
+		};
+	}).concat([function() {
+		var crypto = require( "crypto" );
+
+		// Create MD5 manifest
+		output.push({
+			path: "MANIFEST",
+			data: output.sort(function( a, b ) {
+				return a.path.localeCompare( b.path );
+			}).map(function( file ) {
+				var md5 = crypto.createHash( "md5" );
+				md5.update( file.data );
+				return file.path + " " + md5.digest( "hex" );
+			}).join( "\n" )
+		});
+
+		downloadBuilder.util.createZip( output, targetZip, function( error ) {
+			if ( error ) {
+				abort( error.stack );
+			}
+			echo( "Built zip CDN package at " + path.relative( "../..", targetZip ).cyan );
+			return callback();
+		});
+	}]));
+}
+
 function pushRelease() {
 	echo( "Pushing release to GitHub..." );
 	git( "push --tags", "Error pushing tags to GitHub." );
 }
 
 function updateBranchVersion() {
+	// Pre-releases don't change the master version
+	if ( preRelease ) {
+		return;
+	}
+
 	var pkg;
 
 	echo( "Checking out " + branch.cyan + " branch..." );
@@ -189,11 +356,20 @@ function updateBranchVersion() {
 }
 
 function pushBranch() {
+	// Pre-releases don't change the master version
+	if ( preRelease ) {
+		return;
+	}
+
 	echo( "Pushing " + branch.cyan + " to GitHub..." );
 	git( "push", "Error pushing to GitHub." );
 }
 
 function generateChangelog() {
+	if ( preRelease ) {
+		return;
+	}
+
 	var commits,
 		changelogPath = baseDir + "/changelog",
 		changelog = cat( "build/release/changelog-shell" ) + "\n",
@@ -232,6 +408,10 @@ function generateChangelog() {
 }
 
 function gatherContributors() {
+	if ( preRelease ) {
+		return;
+	}
+
 	var contributors,
 		contributorsPath = baseDir + "/contributors";
 
@@ -262,8 +442,11 @@ function gatherContributors() {
 
 function updateTrac() {
 	echo( newVersion.cyan + " was tagged at " + tagTime.cyan + "." );
-	echo( "Close the " + newVersion.cyan + " Milestone with the above date and time." );
-	echo( "Create the " + newVersion.cyan + " Version with the above date and time." );
+	if ( !preRelease ) {
+		echo( "Close the " + newVersion.cyan + " Milestone." );
+	}
+	echo( "Create the " + newVersion.cyan + " Version." );
+	echo( "When Trac asks for date and time, match the above. Should only change minutes and seconds." );
 	echo( "Create a Milestone for the next minor release." );
 }
 
@@ -328,11 +511,63 @@ function writePackage( pkg ) {
 }
 
 function bootstrap( fn ) {
+	getRemote(function( remote ) {
+		if ( (/:/).test( remote ) || fs.existsSync( remote ) ) {
+			repo = remote;
+		} else {
+			repo = "git@github.com:" + remote + ".git";
+		}
+		_bootstrap( fn );
+	});
+}
+
+function getRemote( fn ) {
+	var matches, remote;
+
+	console.log( "Determining remote repo..." );
+	process.argv.forEach(function( arg ) {
+		matches = /--remote=(.+)/.exec( arg );
+		if ( matches ) {
+			remote = matches[ 1 ];
+		}
+	});
+
+	if ( remote ) {
+		fn( remote );
+		return;
+	}
+
+	console.log();
+	console.log( "     !!!!!!!!!!!!!!!!!!!!!!!!!!!!" );
+	console.log( "     !!!!!!!!!!!!!!!!!!!!!!!!!!!!" );
+	console.log( "     !!                        !!" );
+	console.log( "     !! Using jquery/jquery-ui !!" );
+	console.log( "     !!                        !!" );
+	console.log( "     !!!!!!!!!!!!!!!!!!!!!!!!!!!!" );
+	console.log( "     !!!!!!!!!!!!!!!!!!!!!!!!!!!!" );
+	console.log();
+	console.log( "Press enter to continue, or ctrl+c to cancel." );
+	prompt(function() {
+		fn( "jquery/jquery-ui" );
+	});
+}
+
+function _bootstrap( fn ) {
+	console.log( "Determining release type..." );
+	preRelease = process.argv.indexOf( "--pre-release" );
+	if ( preRelease !== -1 ) {
+		preRelease = process.argv[ preRelease + 1 ];
+		console.log( "pre-release" );
+	} else {
+		preRelease = null;
+		console.log( "stable release" );
+	}
+
 	console.log( "Determining directories..." );
 	baseDir = process.cwd() + "/__release";
 	repoDir = baseDir + "/repo";
 
-	if ( existsSync( baseDir ) ) {
+	if ( fs.existsSync( baseDir ) ) {
 		console.log( "The directory '" + baseDir + "' already exists." );
 		console.log( "Aborting." );
 		process.exit( 1 );
@@ -342,9 +577,7 @@ function bootstrap( fn ) {
 	fs.mkdirSync( baseDir );
 
 	console.log( "Installing dependencies..." );
-	require( "child_process" ).exec( "npm install shelljs colors", {
-		cwd: baseDir
-	}, function( error ) {
+	require( "child_process" ).exec( "npm install shelljs colors download.jqueryui.com@1.10.8", function( error ) {
 		if ( error ) {
 			console.log( error );
 			return process.exit( 1 );
@@ -352,6 +585,7 @@ function bootstrap( fn ) {
 
 		require( "shelljs/global" );
 		require( "colors" );
+		downloadBuilder = require( "download.jqueryui.com" );
 
 		fn();
 	});
