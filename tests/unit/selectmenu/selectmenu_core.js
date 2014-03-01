@@ -9,7 +9,7 @@ asyncTest( "accessibility", function() {
 		menu = element.selectmenu( "menuWidget" );
 
 	button.simulate( "focus" );
-	links = menu.find( "li.ui-menu-item a" );
+	links = menu.find( "li.ui-menu-item" );
 
 	expect( 12 + links.length * 2 );
 
@@ -65,7 +65,7 @@ $.each([
 
 		button.simulate( "focus" );
 		setTimeout(function() {
-			links = menu.find("li.ui-menu-item a");
+			links = menu.find("li.ui-menu-item");
 
 			button.simulate( "keydown", { keyCode: $.ui.keyCode.DOWN } );
 			equal(
@@ -98,10 +98,10 @@ $.each([
 
 		button.simulate( "focus" );
 		setTimeout(function() {
-			links = menu.find("li.ui-menu-item a");
+			links = menu.find("li.ui-menu-item");
 
 			button.trigger( "click" );
-			menu.find( "a" ).last().simulate( "mouseover" ).trigger( "click" );
+			menu.find( "li" ).last().simulate( "mouseover" ).trigger( "click" );
 			equal(
 				menu.attr( "aria-activedescendant" ),
 				links.eq( element[ 0 ].selectedIndex ).attr( "id" ),
@@ -135,7 +135,7 @@ $.each([
 		button.simulate( "focus" );
 
 		setTimeout(function() {
-			links = menu.find( "li.ui-menu-item a" );
+			links = menu.find( "li.ui-menu-item" );
 			// open menu and click first item
 			button.trigger( "click" );
 			links.first().simulate( "mouseover" ).trigger( "click" );
@@ -169,7 +169,7 @@ $.each([
 		button.simulate( "focus" );
 
 		setTimeout(function() {
-			links = menu.find( "li.ui-menu-item a" );
+			links = menu.find( "li.ui-menu-item" );
 
 			button.trigger( "click" );
 			links.first().simulate( "mouseover" ).trigger( "click" );
@@ -184,39 +184,81 @@ $.each([
 		}, 1 );
 	});
 
-	asyncTest( "item focus - " + settings.type, function () {
-		expect( 4 );
+	asyncTest( "item focus and active state - " + settings.type, function () {
+		expect( 8 );
 
 		var element = $( settings.selector ).selectmenu(),
 			button = element.selectmenu( "widget" ),
 			menu = element.selectmenu( "menuWidget" ),
-			links, focusedItem;
+			links, focusedItem, activeItem;
 
 		// init menu
 		button.simulate( "focus" );
 
 		setTimeout(function() {
-			links = menu.find( "li.ui-menu-item a" );
+			links = menu.find( "li.ui-menu-item" );
 
 			button.trigger( "click" );
-			focusedItem = menu.find( "li.ui-menu-item a.ui-state-focus" );
-			equal( focusedItem.length, 1, "only one item has focus after first opening" );
-			equal( focusedItem.attr( "id" ), links.eq( element[ 0 ].selectedIndex ).attr( "id" ), "active item has focus after first opening" );
+			setTimeout(function() {
+				checkItemClasses();
 
-			links.eq( 3 ).simulate( "mouseover" ).trigger( "click" );
+				links.eq( 3 ).simulate( "mouseover" ).trigger( "click" );
+
+				button.trigger( "click" );
+				links.eq( 2 ).simulate( "mouseover" );
+				$( document ).trigger( "click" );
+
+				button.trigger( "click" );
+				links.eq( 1 ).simulate( "mouseover" );
+				$( document ).trigger( "click" );
+
+				button.trigger( "click" );
+				setTimeout(function() {
+					 checkItemClasses();
+					start();
+				}, 350 );
+			}, 350 );
+		}, 1 );
+
+		function checkItemClasses() {
+			focusedItem = menu.find( "li.ui-state-focus" );
+			equal( focusedItem.length, 1, "only one item has ui-state-focus class" );
+			equal( focusedItem.attr( "id" ), links.eq( element[ 0 ].selectedIndex ).attr( "id" ), "selected item has ui-state-focus class" );
+
+			activeItem = menu.find( "li.ui-state-active" );
+			equal( activeItem.length, 1, "only one item has ui-state-active class" );
+			equal( activeItem.attr( "id" ), links.eq( element[ 0 ].selectedIndex ).attr( "id" ), "selected item has ui-state-active class" );
+		}
+	});
+
+	asyncTest( "empty option - " + settings.type, function () {
+		expect( 7 );
+
+		var element = $( settings.selector ),
+			button, menu, links, link;
+
+		element.find( "option" ).first().text( "" );
+		element.selectmenu();
+		button = element.selectmenu( "widget" );
+		menu = element.selectmenu( "menuWidget" );
+
+		// init menu
+		button.simulate( "focus" );
+
+		setTimeout(function() {
+			links = menu.find( "li:not(.ui-selectmenu-optgroup)" );
+			link = links.first();
 
 			button.trigger( "click" );
-			links.eq( 2 ).simulate( "mouseover" );
-			$( document ).trigger( "click" );
 
-			button.trigger( "click" );
-			links.eq( 1 ).simulate( "mouseover" );
-			$( document ).trigger( "click" );
+			equal( links.length, element.find( "option" ).length, "correct amount of list elements" );
+			ok( link.outerHeight() > 10, "empty item seems to have reasonable height" );
+			ok( link.attr( "id" ), "empty item has id attribute" );
+			ok( link.hasClass( "ui-menu-item" ), "empty item has ui-menu-item class" );
+			ok( !link.hasClass( "ui-menu-divider" ), "empty item has not ui-menu-divider class" );
+			equal( link.attr( "tabindex" ), -1, "empty item has tabindex" );
+			equal( link.attr( "role" ), "option", "empty item has role option" );
 
-			button.trigger( "click" );
-			focusedItem = menu.find( "li.ui-menu-item a.ui-state-focus" );
-			equal( focusedItem.length, 1, "only one item has focus" );
-			equal( focusedItem.attr( "id" ), links.eq( element[ 0 ].selectedIndex ).attr( "id" ), "active item has focus" );
 			start();
 		}, 1 );
 	});

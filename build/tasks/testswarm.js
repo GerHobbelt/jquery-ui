@@ -44,12 +44,13 @@ function submit( commit, runs, configFile, extra, done ) {
 		commitUrl = "https://github.com/jquery/jquery-ui/commit/" + commit;
 
 	if ( extra ) {
-		extra = " " + extra;
+		extra = " (" + extra + ")";
 	}
 
 	for ( testName in runs ) {
 		runs[ testName ] = config.testUrl + commit + "/tests/unit/" + runs[ testName ];
 	}
+
 	testswarm.createClient({
 		url: config.swarmUrl,
 		pollInterval: 10000,
@@ -61,10 +62,10 @@ function submit( commit, runs, configFile, extra, done ) {
 		token: config.authToken
 	})
 	.addjob({
-		name: "jQuery UI #<a href='" + commitUrl + "'>" + commit.substr( 0, 10 ) + "</a>" + extra,
+		name: "Commit <a href='" + commitUrl + "'>" + commit.substr( 0, 10 ) + "</a>" + extra,
 		runs: runs,
 		runMax: config.runMax,
-		browserSets: config.browserSets
+		browserSets: ["popular-ui"]
 	}, function( error, passed ) {
 		if ( error ) {
 			grunt.log.error( error );
