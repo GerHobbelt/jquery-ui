@@ -11,7 +11,7 @@ test("open", function() {
 	var element = $("<div></div>");
 	element.dialog({
 		open: function(ev, ui) {
-			ok(element.data("ui-dialog")._isOpen, "interal _isOpen flag is set");
+			ok(element.dialog( "instance" )._isOpen, "interal _isOpen flag is set");
 			ok(true, "autoOpen: true fires open callback");
 			equal(this, element[0], "context of callback");
 			equal(ev.type, "dialogopen", "event type in callback");
@@ -30,7 +30,7 @@ test("open", function() {
 			deepEqual(ui, {}, "ui hash in callback");
 		}
 	}).bind("dialogopen", function(ev, ui) {
-		ok(element.data("ui-dialog")._isOpen, "interal _isOpen flag is set");
+		ok(element.dialog( "instance" )._isOpen, "interal _isOpen flag is set");
 		ok(true, "dialog('open') fires open event");
 		equal(this, element[0], "context of event");
 		deepEqual(ui, {}, "ui hash in event");
@@ -361,9 +361,9 @@ test("ensure dialog keeps focus when clicking modal overlay", function() {
 	var element = $( "<div></div>" ).dialog({
 			modal: true
 		});
-	ok( $(":focus").closest(".ui-dialog").length, "focus is in dialog" );
+	equal( $( document.activeElement ).closest( ".ui-dialog" ).length, 1, "focus is in dialog" );
 	$(".ui-widget-overlay").simulate("mousedown");
-	ok( $(":focus").closest(".ui-dialog").length, "focus is still in dialog" );
+	equal( $( document.activeElement ).closest( ".ui-dialog" ).length, 1, "focus is still in dialog" );
 	element.remove();
 });
 
