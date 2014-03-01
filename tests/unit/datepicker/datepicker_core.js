@@ -4,11 +4,7 @@
 
 (function($) {
 
-module( "datepicker: core", {
-	setup: function() {
-		$( "body" ).focus();
-	}
-});
+module( "datepicker: core" );
 
 TestHelpers.testJshint( "datepicker" );
 
