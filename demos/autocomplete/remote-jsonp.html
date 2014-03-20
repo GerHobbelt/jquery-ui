@@ -4,7 +4,7 @@
 	<meta charset="utf-8">
 	<title>jQuery UI Autocomplete - Remote JSONP datasource</title>
 	<link rel="stylesheet" href="../../themes/base/all.css">
-	<script src="../../jquery.js"></script>
+	<script src="../../tests/jquery.js"></script>
 	<script src="../../ui/core.js"></script>
 	<script src="../../ui/widget.js"></script>
 	<script src="../../ui/position.js"></script>
@@ -13,7 +13,7 @@
 	<link rel="stylesheet" href="../demos.css">
 	<style>
 	.ui-autocomplete-loading {
-		background: white url("images/ui-anim_basic_16x16.gif") right center no-repeat;
+		background: white url('images/ui-anim_basic_16x16.gif') right center no-repeat;
 	}
 	#city { width: 25em; }
 	</style>
@@ -27,13 +27,21 @@
 		$( "#city" ).autocomplete({
 			source: function( request, response ) {
 				$.ajax({
-					url: "http://gd.geobytes.com/AutoCompleteCity",
+					url: "http://ws.geonames.org/searchJSON",
 					dataType: "jsonp",
 					data: {
-						q: request.term
+						featureClass: "P",
+						style: "full",
+						maxRows: 12,
+						name_startsWith: request.term
 					},
 					success: function( data ) {
-						response( data );
+						response( $.map( data.geonames, function( item ) {
+							return {
+								label: item.name + (item.adminName1 ? ", " + item.adminName1 : "") + ", " + item.countryName,
+								value: item.name
+							}
+						}));
 					}
 				});
 			},

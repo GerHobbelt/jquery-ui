@@ -271,7 +271,7 @@ function buildCDNPackage( callback ) {
 					skipDocs: true
 				});
 			// TODO improve code by using custom packer instead of download packer (Packer)
-			themeCssOnlyRe = new RegExp( "development-bundle/themes/" + folderName + "/jquery.ui.theme.css" );
+			themeCssOnlyRe = new RegExp( "development-bundle/themes/" + folderName + "/theme.css" );
 			themeDirRe = new RegExp( "css/" + folderName );
 			packer.pack(function( error, files ) {
 				if ( error ) {

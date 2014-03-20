@@ -124,7 +124,8 @@ return $.widget( "ui.tabs", {
 	_initialActive: function() {
 		var active = this.options.active,
 			collapsible = this.options.collapsible,
-			locationHash = location.hash.substring( 1 );
+			locationHash = location.hash.substring( 1 ),
+			active_hash;
 
 		if ( active === null ) {
 			// check the fragment identifier in the URL
@@ -148,11 +149,22 @@ return $.widget( "ui.tabs", {
 			}
 		}
 
-		// handle numbers: negative, out of range
+		// handle hash-string or numbers: negative, out of range
 		if ( active !== false ) {
+			active_hash = active;
 			active = this.tabs.index( this.tabs.eq( active ) );
 			if ( active === -1 ) {
-				active = collapsible ? false : 0;
+				// check a string: hash match
+				this.tabs.each(function( i, tab ) {
+					console.log("tab aria controls: ", $( tab ).attr( "aria-controls" ));
+					if ( $( tab ).attr( "aria-controls" ) === active_hash ) {
+						active = i;
+						return false;
+					}
+				});
+				if ( active === -1 ) {
+					active = collapsible ? false : 0;
+				}
 			}
 		}
 
@@ -180,7 +192,7 @@ return $.widget( "ui.tabs", {
 			return;
 		}
 
-		switch ( event.keyCode ) {
+		switch ( event.which ) {
 			case $.ui.keyCode.RIGHT:
 			case $.ui.keyCode.DOWN:
 				selectedIndex++;
@@ -238,7 +250,7 @@ return $.widget( "ui.tabs", {
 		}
 
 		// Ctrl+up moves focus to the current tab
-		if ( event.ctrlKey && event.keyCode === $.ui.keyCode.UP ) {
+		if ( event.ctrlKey && event.which === $.ui.keyCode.UP ) {
 			event.preventDefault();
 			this.active.focus();
 		}
@@ -246,11 +258,11 @@ return $.widget( "ui.tabs", {
 
 	// Alt+page up/down moves focus to the previous/next tab (and activates)
 	_handlePageNav: function( event ) {
-		if ( event.altKey && event.keyCode === $.ui.keyCode.PAGE_UP ) {
+		if ( event.altKey && event.which === $.ui.keyCode.PAGE_UP ) {
 			this._activate( this._focusNextTab( this.options.active - 1, false ) );
 			return true;
 		}
-		if ( event.altKey && event.keyCode === $.ui.keyCode.PAGE_DOWN ) {
+		if ( event.altKey && event.which === $.ui.keyCode.PAGE_DOWN ) {
 			this._activate( this._focusNextTab( this.options.active + 1, true ) );
 			return true;
 		}
