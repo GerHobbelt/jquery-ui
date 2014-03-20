@@ -15,20 +15,15 @@
 	$(function() {
 		$.widget( "custom.iconselectmenu", $.ui.selectmenu, {
 			_renderItem: function( ul, item ) {
-				var a, span,
-					li = $( "<li>" );
+				var li = $( "<li>", { text: item.label } );
 
 				if ( item.disabled ) {
 					li.addClass( "ui-state-disabled" ).text( item.label );
 				} else {
-					a = $( "<a>", {
-						text: item.label,
-						href: "#"
-					}).appendTo( li );
-					span = $( "<span>", {
+					$( "<span>", {
 						style: item.element.attr( "style" ),
 						"class": "ui-icon " + item.element.attr( "class" )
-					}).appendTo( a );
+					}).appendTo( li );
 				}
 
 				return li.appendTo( ul );
@@ -65,30 +60,27 @@
 			width: 200px;
 		}
 
-		.ui-selectmenu-menu .ui-menu .ui-icon {
-			top: 0.4em;
-		}
 		.ui-selectmenu-menu .ui-menu .ui-menu-item a {
 			padding-left: 2em;
 		}
 
 		/* select with custom icons */
-		.ui-selectmenu-menu .ui-menu.customicons .ui-menu-item a {
+		.ui-selectmenu-menu .ui-menu.customicons .ui-menu-item {
 			padding: 0.5em 0 0.5em 3em;
 		}
-		.ui-selectmenu-menu .ui-menu.customicons .ui-menu-item a .ui-icon {
+		.ui-selectmenu-menu .ui-menu.customicons .ui-menu-item .ui-icon {
 			height: 24px;
 			width: 24px;
-			top: 0.2em;
+			top: 0.1em;
 		}
 		.ui-icon.video {
-			background: url(images/24-video-square.png) 0 0 no-repeat;
+			background: url("images/24-video-square.png") 0 0 no-repeat;
 		}
 		.ui-icon.podcast {
-			background: url(images/24-podcast-square.png) 0 0 no-repeat;
+			background: url("images/24-podcast-square.png") 0 0 no-repeat;
 		}
 		.ui-icon.rss {
-			background: url(images/24-rss-square.png) 0 0 no-repeat;
+			background: url("images/24-rss-square.png") 0 0 no-repeat;
 		}
 
 		/* select with CSS avatar icons */
@@ -133,9 +125,9 @@
 		<fieldset>
 			<label for="people">Select a Person:</label>
 			<select name="people" id="people">
-				<option value="1" class="avatar" style="background-image: url(http://www.gravatar.com/avatar/b3e04a46e85ad3e165d66f5d927eb609?d=monsterid&amp;r=g&amp;s=16);">John Resig</option>
-				<option value="2" class="avatar" style="background-image: url(http://www.gravatar.com/avatar/e42b1e5c7cfd2be0933e696e292a4d5f?d=monsterid&amp;r=g&amp;s=16);">Tauren Mills</option>
-				<option value="3" class="avatar" style="background-image: url(http://www.gravatar.com/avatar/bdeaec11dd663f26fa58ced0eb7facc8?d=monsterid&amp;r=g&amp;s=16);">Jane Doe</option>
+				<option value="1" class="avatar" style="background-image: url('http://www.gravatar.com/avatar/b3e04a46e85ad3e165d66f5d927eb609?d=monsterid&amp;r=g&amp;s=16');">John Resig</option>
+				<option value="2" class="avatar" style="background-image: url('http://www.gravatar.com/avatar/e42b1e5c7cfd2be0933e696e292a4d5f?d=monsterid&amp;r=g&amp;s=16');">Tauren Mills</option>
+				<option value="3" class="avatar" style="background-image: url('http://www.gravatar.com/avatar/bdeaec11dd663f26fa58ced0eb7facc8?d=monsterid&amp;r=g&amp;s=16');">Jane Doe</option>
 			</select>
 		</fieldset>
 

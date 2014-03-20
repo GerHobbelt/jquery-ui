@@ -107,7 +107,18 @@
 		});
 
 		/* empty */
-		$('.empty select').selectmenu();
+		$(".empty select").selectmenu();
+
+		/* width */
+		$("#width_auto1, #width_auto2").selectmenu();
+
+		$("#width_js1, #width_js2").selectmenu({
+			width: 200
+		});
+
+		var widthMenu = $("#width_menu").selectmenu();
+		widthMenu.selectmenu("menuWidget").addClass("width-menu");
+
 	});
 	</script>
 	<style>
@@ -117,6 +128,9 @@
 		select { width: 200px; }
 
 		.ui-selectmenu-button  { display: block; margin-bottom: 1em;}
+
+		/* width */
+		.width-menu { width: 196px; }
 	</style>
 </head>
 <body>
@@ -156,7 +170,7 @@
 
 		<label for="disabled2">Disabled options</label>
 		<select name="disabled2" id="disabled2">
-			<option value="1">1</option>
+			<option value="1" disabled="disabled">1</option>
 			<option value="2" selected="selected">2</option>
 			<option value="3">3</option>
 			<option disabled="disabled" value="4">4</option>
@@ -212,7 +226,7 @@
 
 		<label for="empty2">Select with one empty option element</label>
 		<select name="empty2" id="empty2">
-			<option value=""></option>
+			<option value="" label="empty"></option>
 		</select>
 
 		<label for="empty3">Select with some empty option elements</label>
@@ -221,10 +235,10 @@
 			<option value="2" selected="selected">2</option>
 			<option value="3">3</option>
 			<option value="4">4</option>
-			<option value=""></option>
+			<option value="" label="empty"></option>
 			<option value="6">6</option>
 			<option value="7">7</option>
-			<option value=""></option>
+			<option value="" label="empty"></option>
 			<option value="9">9</option>
 		</select>
 
@@ -235,6 +249,44 @@
 				<option value="somefile">Some unknown file</option>
 				<option value="someotherfile">Some other file</option>
 			</optgroup>
+		</select>
+	</fieldset>
+
+	<h2>Width tests</h2>
+	<fieldset>
+		<label for="width_auto1">Width auto</label>
+		<select name="width_auto1" id="width_auto1" style="width: auto;">
+			<option>Width test 1</option>
+			<option>Width test 2</option>
+			<option>Width test 3</option>
+		</select>
+
+		<label for="width_auto2">Width auto with long option</label>
+		<select name="width_auto2" id="width_auto2" style="width: auto;">
+			<option>Width test 1</option>
+			<option>Width test 2</option>
+			<option>Width test 3 Width test 3 Width test 3</option>
+		</select>
+
+		<label for="width_js1">Width set by JS</label>
+		<select name="width_js1" id="width_js1">
+			<option>Width test 1</option>
+			<option>Width test 2</option>
+			<option>Width test 3</option>
+		</select>
+
+		<label for="width_js2">Width set by JS with long option</label>
+		<select name="width_js2" id="width_js2">
+			<option>Width test 1</option>
+			<option>Width test 2</option>
+			<option>Width test 3 Width test 3 Width test 3</option>
+		</select>
+
+		<label for="width_menu">Width set by JS with long option</label>
+		<select name="width_menu" id="width_menu">
+			<option>Width test 1</option>
+			<option>Width test 2</option>
+			<option>Width test 3 Width test 3 Width test 3</option>
 		</select>
 	</fieldset>
 </form>
