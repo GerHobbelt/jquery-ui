@@ -86,7 +86,7 @@ TestHelpers.testJshint = function( module ) {
 
 		$.when(
 			$.ajax({
-				url: url("../../../ui/.jshintrc"),
+				url: url("../../jshintrc-for-json-load-tests.json"),
 				dataType: "json"
 			}),
 			$.ajax({
