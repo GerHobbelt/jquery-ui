@@ -1,0 +1,67 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Timepicker Demo: Default</title>
+	<link rel="stylesheet" href="../../themes/base/all.css">
+	<script src="../../tests/jquery.js"></script>
+	<script src="../../external/jquery.mousewheel.js"></script>
+	<script src="../../external/globalize.js"></script>
+	<script src="../../external/globalize.culture.de-DE.js"></script>
+	<script src="../../external/globalize.culture.ja-JP.js"></script>
+	<script src="../../ui/core.js"></script>
+	<script src="../../ui/widget.js"></script>
+	<script src="../../ui/button.js"></script>
+	<script src="../../ui/spinner.js"></script>
+	<script src="../../ui/mask.js"></script>
+	<script src="../../ui/timepicker.js"></script>
+	<link rel="stylesheet" href="../demos.css">
+	<script>
+	$(function() {
+		$("#culture").change(function() {
+			$( "input" ).timepicker( "option", "culture", $( this ).val() );
+		});
+		function setup() {
+			$("#timepicker").timepicker();
+			$("#timepicker2").timepicker();
+			$("#timepicker3").timepicker({ ampm: false });
+			$("#timepicker4").timepicker({ seconds: false });
+			$("#timepicker5").timepicker({ ampm: false, seconds: false });
+			$("#timepicker6").timepicker({ ampm: false, seconds: false, clearEmpty: true });
+			$("#timepicker7").timepicker({ disabled: true });
+		}
+		setup();
+	});
+	</script>
+	<style>
+		label {
+			font-size: 14px;
+			display: block;
+		}
+	</style>
+</head>
+<body>
+	<form>
+		<label>Timepicker</label>
+		<input id="timepicker">
+		<label>Timepicker - With Initial Value</label>
+		<input id="timepicker2" value="01:30:45 am">
+		<label>Timepicker - <code>{ ampm: false }</code></label>
+		<input id="timepicker3">
+		<label>Timepicker - <code>{ seconds: false }</code></label>
+		<input id="timepicker4">
+		<label>Timepicker - <code>{ ampm: false, seconds: false }</code></label>
+		<input id="timepicker5">
+		<label>Timepicker - <code>{ ampm: false, seconds: false, clearEmpty: true }</code></label>
+		<input id="timepicker6">
+        	<label>Timepicker - <code>{ disabled: true }</code></label>
+		<input id="timepicker7">
+		<label>Globalize Culture Selector</label>
+		<select id="culture" name="culture">
+			<option value="en-US">en-US</option>
+			<option value="de-DE">de-DE</option>
+			<option value="ja-JP">ja-JP</option>
+		</select>
+	</form>
+</body>
+</html>
