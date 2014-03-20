@@ -53,8 +53,6 @@ function submit( commit, runs, configFile, extra, done ) {
 
 	testswarm.createClient({
 		url: config.swarmUrl,
-		pollInterval: 10000,
-		timeout: 1000 * 60 * 45
 	})
 	.addReporter( testswarm.reporters.cli )
 	.auth({
@@ -65,7 +63,8 @@ function submit( commit, runs, configFile, extra, done ) {
 		name: "Commit <a href='" + commitUrl + "'>" + commit.substr( 0, 10 ) + "</a>" + extra,
 		runs: runs,
 		runMax: config.runMax,
-		browserSets: ["popular-ui"]
+		browserSets: [ "popular-ui" ],
+		timeout: 1000 * 60 * 30
 	}, function( error, passed ) {
 		if ( error ) {
 			grunt.log.error( error );
