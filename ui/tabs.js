@@ -156,7 +156,6 @@ return $.widget( "ui.tabs", {
 			if ( active === -1 ) {
 				// check a string: hash match
 				this.tabs.each(function( i, tab ) {
-					console.log("tab aria controls: ", $( tab ).attr( "aria-controls" ));
 					if ( $( tab ).attr( "aria-controls" ) === active_hash ) {
 						active = i;
 						return false;

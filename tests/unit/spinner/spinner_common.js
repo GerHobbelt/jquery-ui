@@ -2,7 +2,7 @@ TestHelpers.commonWidgetTests( "spinner", {
 	defaults: {
 		culture: null,
 		disabled: false,
-		alignment: 'right',
+		alignment: "right",
 		icons: {
 			down: "ui-icon-triangle-1-s",
 			up: "ui-icon-triangle-1-n",

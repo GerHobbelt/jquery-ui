@@ -42,7 +42,7 @@ return $.widget( "ui.spinner", {
 	widgetEventPrefix: "spin",
 	options: {
 		culture: null,
-		alignment: 'right',
+		alignment: "right",
 		icons: {
 			down: "ui-icon-triangle-1-s",
 			up: "ui-icon-triangle-1-n",
@@ -264,7 +264,7 @@ return $.widget( "ui.spinner", {
 	_buttonHtml: function() {
 
 		switch (this.options.alignment) {
-		case 'right':
+		case "right":
 			return "" +
 				"<a class='ui-spinner-button ui-spinner-up ui-corner-tr'>" +
 					"<span class='ui-icon " + this.options.icons.up + "'>&#9650;</span>" +
@@ -272,7 +272,7 @@ return $.widget( "ui.spinner", {
 				"<a class='ui-spinner-button ui-spinner-down ui-corner-br'>" +
 					"<span class='ui-icon " + this.options.icons.down + "'>&#9660;</span>" +
 				"</a>";
-		case 'left':
+		case "left":
 			return "" +
 				"<a class='ui-spinner-button ui-spinner-up ui-corner-tl'>" +
 					"<span class='ui-icon " + this.options.icons.up + "'>&#9650;</span>" +
@@ -280,7 +280,7 @@ return $.widget( "ui.spinner", {
 				"<a class='ui-spinner-button ui-spinner-down ui-corner-bl'>" +
 					"<span class='ui-icon " + this.options.icons.down + "'>&#9660;</span>" +
 				"</a>";
-		case 'vertical':
+		case "vertical":
 			return "" +
 				"<a class='ui-spinner-button ui-spinner-up ui-corner-top'>" +
 					"<span class='ui-icon " + this.options.icons.up + "'>&#9650;</span>" +
@@ -288,7 +288,7 @@ return $.widget( "ui.spinner", {
 				"<a class='ui-spinner-button ui-spinner-down ui-corner-bottom'>" +
 					"<span class='ui-icon " + this.options.icons.down + "'>&#9660;</span>" +
 				"</a>";
-		case 'horizontal':
+		case "horizontal":
 			return "" +
 				"<a class='ui-spinner-button ui-spinner-up ui-corner-right'>" +
 					"<span class='ui-icon " + this.options.icons.right + "'>&#9658;</span>" +
@@ -416,7 +416,7 @@ return $.widget( "ui.spinner", {
 			}
 		}
 		if ( key === "icons" ) {
-			if ( this.options.alignment == 'horizontal' ) {
+			if ( this.options.alignment == "horizontal" ) {
 
 				this.buttons.first().find( ".ui-icon" )
 					.removeClass( this.options.icons.left )

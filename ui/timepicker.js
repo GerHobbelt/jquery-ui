@@ -198,7 +198,7 @@ $.widget( "ui.timepicker", {
 	},
 	_setField: function( field ) {
 		this.currentField = field;
-		switch( field ) {
+		switch ( field ) {
 			case 0:
 				if ( this.options.ampm && this.mask.options.mask.indexOf( "h" ) ) {
 					this.spinner.options.min = 1;

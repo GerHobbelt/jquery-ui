@@ -12,7 +12,8 @@
 ;(function( $, undefined ) {
 
 var rkeyEvent = /^key/,
-	rmouseEvent = /^(?:mouse|contextmenu)|click/;
+	rmouseEvent = /^(?:mouse|contextmenu)|click/,
+	currentElementUnderMouse;
 
 $.fn.simulate = function( type, options ) {
 	return this.each(function() {
@@ -85,7 +86,7 @@ $.extend( $.simulate.prototype, {
 	},
 
 	mouseEvent: function( type, options ) {
-		var event, eventDoc, doc, body;
+		var event, eventDoc, doc, body, configurable = false;
 		options = $.extend({
 			bubbles: true,
 			cancelable: (type !== "mousemove"),
@@ -114,7 +115,10 @@ $.extend( $.simulate.prototype, {
 			// IE 9+ creates events with pageX and pageY set to 0.
 			// Trying to modify the properties throws an error,
 			// so we define getters to return the correct values.
-			if ( event.pageX === 0 && event.pageY === 0 && Object.defineProperty ) {
+			if ( Object.getOwnPropertyDescriptor && Object.getOwnPropertyDescriptor( event, "pageX" ).configurable && Object.defineProperty ) {
+				configurable = true;
+			}
+			if ( event.pageX === 0 && event.pageY === 0 && configurable ) {
 				eventDoc = event.relatedTarget.ownerDocument || document;
 				doc = eventDoc.documentElement;
 				body = eventDoc.body;
@@ -258,10 +262,33 @@ $.extend( $.simulate.prototype, {
 			}
 			element.unbind( "blur", trigger );
 		}, 1 );
+	},
+
+	simulateMousemove: function() {
+		var elementUnderMouse;
+
+		// What element will come to be underneath the mouse after the move?
+		elementUnderMouse = document.elementFromPoint( this.options.clientX, this.options.clientY );
+
+		if( elementUnderMouse !== currentElementUnderMouse ) {
+			if( currentElementUnderMouse ) {
+				// Fire mouseout on the previous element
+				this.simulateEvent( currentElementUnderMouse, "mouseout", this.options );
+			}
+
+			if( elementUnderMouse && !$( "body" ).is( elementUnderMouse ) ) {
+				// Fire mouseover on the new element
+				this.simulateEvent( elementUnderMouse, "mouseover", this.options );
+			}
+		}
+
+		// Fire the mousemove event on the document
+		this.simulateEvent( document, "mousemove", this.options );
+
+		// Store the element under the mouse for the next move
+		currentElementUnderMouse = elementUnderMouse;
 	}
 });
-
-
 
 /** complex events **/
 
@@ -277,51 +304,91 @@ function findCenter( elem ) {
 	};
 }
 
-function findCorner( elem ) {
-	var offset,
-		document = $( elem.ownerDocument );
-	elem = $( elem );
-	offset = elem.offset();
-
-	return {
-		x: offset.left - document.scrollLeft(),
-		y: offset.top - document.scrollTop()
-	};
-}
-
 $.extend( $.simulate.prototype, {
 	simulateDrag: function() {
-		var i = 0,
-			target = this.target,
-			options = this.options,
-			center = options.handle === "corner" ? findCorner( target ) : findCenter( target ),
-			x = Math.floor( center.x ),
-			y = Math.floor( center.y ),
-			coord = { clientX: x, clientY: y },
-			dx = options.dx || ( options.x !== undefined ? options.x - x : 0 ),
-			dy = options.dy || ( options.y !== undefined ? options.y - y : 0 ),
-			moves = options.moves || 3;
+		var dragger = this.makeDragger();
+		dragger.start(this.target, {
+            clientX: this.options.clientX,
+            clientY: this.options.clientY
+        });
+		dragger.end(this.options);
+	},
+	makeDragger: function () {
+		return new $.simulate.dragger(this);
+	}
+});
 
-		this.simulateEvent( target, "mousedown", coord );
+$.simulate.dragger = function (simulator) {
+	this.started = false;
+	this.ended = false;
+	this.simulator = simulator;
+};
+$.extend( $.simulate.dragger.prototype, {
+	start: function (target, options) {
+		if ( this.started || this.ended ) {
+			return;
+		}
 
-		for ( ; i < moves ; i++ ) {
-			x += dx / moves;
-			y += dy / moves;
+        options = options || {};
 
+		this.started = true;
+		this.target = target;
+		var center = findCenter( target );
+		this.coord = {
+			clientX: options.clientX || Math.floor( center.x ),
+			clientY: options.clientY || Math.floor( center.y )
+		};
+
+		this.simulator.simulateEvent( target, "mousedown", {
+			clientX: this.coord.clientX,
+			clientY: this.coord.clientY
+		});
+	},
+	move: function (delta) {
+		if (!this.started || this.ended) {
+			return;
+		}
+
+		var moves = delta.steps || 3,
+			dx = Math.floor(delta.dx || 0),
+			dy = Math.floor(delta.dy || 0),
+			final_coord = {
+				clientX: this.coord.clientX + dx,
+				clientY: this.coord.clientY + dy
+			},
+            i,
+            x = this.coord.clientX,
+            y = this.coord.clientY,
+            coord;
+
+        dx /= moves;
+        dy /= moves;
+		for ( i = 0 ; i < moves - 1 ; i++ ) {
+			x += dx;
+			y += dy;
 			coord = {
-				clientX: Math.round( x ),
-				clientY: Math.round( y )
+				clientX: Math.round(x),
+				clientY: Math.round(y)
 			};
 
-			this.simulateEvent( target.ownerDocument, "mousemove", coord );
+			this.simulator.simulateEvent( document, "mousemove", coord );
 		}
 
-		if ( $.contains( document, target ) ) {
-			this.simulateEvent( target, "mouseup", coord );
-			this.simulateEvent( target, "click", coord );
-		} else {
-			this.simulateEvent( document, "mouseup", coord );
+		this.simulator.simulateEvent( document, "mousemove", final_coord );
+		this.coord = final_coord;
+	},
+	end: function (delta) {
+		if (!this.started || this.ended) {
+			return;
 		}
+		if (delta) {
+			this.move(delta);
+		}
+
+		this.ended = true;
+
+		this.simulator.simulateEvent( this.target, "mouseup", this.coord );
+		this.simulator.simulateEvent( this.target, "click", this.coord );
 	}
 });
 

@@ -981,7 +981,7 @@ function escapeText( s ) {
 	s = s + "";
 	// Both single quotes and double quotes (for attributes)
 	return s.replace( /['"<>&]/g, function( s ) {
-		switch( s ) {
+		switch ( s ) {
 			case "'":
 				return "&#039;";
 			case "\"":
