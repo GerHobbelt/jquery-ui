@@ -394,7 +394,7 @@ $.widget( "ui.buttonset", {
 			.map(function() {
 				return $( this ).button( "widget" )[ 0 ];
 			})
-				.removeClass( "ui-corner-left ui-corner-right" )
+			.removeClass( "ui-corner-left ui-corner-right" )
 			.end()
 			.button( "destroy" );
 	}
