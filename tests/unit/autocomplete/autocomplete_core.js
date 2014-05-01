@@ -338,4 +338,26 @@ test( ".replaceWith() (#9172)", function() {
 	equal( parent.html().toLowerCase(), replacement );
 });
 
+asyncTest( "Search if the user retypes the same value (#7434)", function() {
+	expect( 3 );
+	var element = $( "#autocomplete" ).autocomplete({
+			source: [ "java", "javascript" ],
+			delay: 0
+		}),
+		menu = element.autocomplete( "instance" ).menu.element;
+
+	element.val( "j" ).simulate( "keydown" );
+	setTimeout(function() {
+		equal( menu.css( "display" ), "block", "menu displays initially" );
+		element.trigger( "blur" );
+		equal( menu.css( "display" ), "none", "menu hidden after blur" );
+		element.val( "j" ).simulate( "keydown" );
+		setTimeout(function() {
+			equal( menu.css( "display" ), "block",
+				"menu displays after typing the same value" );
+			start();
+		});
+	});
+});
+
 }( jQuery ) );
