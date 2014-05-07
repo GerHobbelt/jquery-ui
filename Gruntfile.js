@@ -31,6 +31,7 @@ var
 		"button",
 		"datepicker",
 		"dialog",
+		"draggable",
 		"menu",
 		"menubar",
 		"popup",
@@ -38,6 +39,7 @@ var
 		"resizable",
 		"selectable",
 		"selectmenu",
+		"sortable",
 		"slider",
 		"spinner",
 		"tabs",
@@ -228,7 +230,7 @@ grunt.initConfig({
 		},
 		mousewheel: {
 			files: {
-				"external": "jquery-mousewheel/*.js"
+				"external": "jquery-mousewheel/jquery.mousewheel.js"
 			}
 		},
 		jshint: {
