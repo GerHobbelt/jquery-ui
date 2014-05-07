@@ -356,7 +356,7 @@ return $.widget( "ui.selectmenu", {
 		click: "_toggle",
 		keydown: function( event ) {
 			var preventDefault = true;
-			switch ( event.keyCode ) {
+			switch ( event.which ) {
 				case $.ui.keyCode.TAB:
 				case $.ui.keyCode.ESCAPE:
 					this.close( event );

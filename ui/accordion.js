@@ -191,7 +191,7 @@ return $.widget( "ui.accordion", {
 			currentIndex = this.headers.index( event.target ),
 			toFocus = false;
 
-		switch ( event.keyCode ) {
+		switch ( event.which ) {
 			case keyCode.RIGHT:
 			case keyCode.DOWN:
 				toFocus = this.headers[ ( currentIndex + 1 ) % length ];
@@ -221,7 +221,7 @@ return $.widget( "ui.accordion", {
 	},
 
 	_panelKeyDown: function( event ) {
-		if ( event.keyCode === $.ui.keyCode.UP && event.ctrlKey ) {
+		if ( event.which === $.ui.keyCode.UP && event.ctrlKey ) {
 			$( event.currentTarget ).prev().focus();
 		}
 	},

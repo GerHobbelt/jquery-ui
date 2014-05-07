@@ -63,7 +63,7 @@ $.widget( "ui.popup", {
 
 		this._on(this.options.trigger, {
 			keydown: function( event ) {
-				switch ( event.keyCode ) {
+				switch ( event.which ) {
 					case $.ui.keyCode.TAB:
 						// Waiting for close() will make popup hide too late, which breaks tab key behavior
 						this.element.hide();
@@ -145,7 +145,7 @@ $.widget( "ui.popup", {
 		if ( !this.options.managed ) {
 			//default use case, wrap tab order in popup
 			this._on({ keydown : function( event ) {
-					if ( event.keyCode !== $.ui.keyCode.TAB ) {
+					if ( event.which !== $.ui.keyCode.TAB ) {
 						return;
 					}
 					var tabbables = $( ":tabbable", this.element ),
@@ -180,7 +180,7 @@ $.widget( "ui.popup", {
 
 		this._on({
 			keyup: function( event ) {
-				if ( event.keyCode === $.ui.keyCode.ESCAPE && this.element.is( ":visible" ) ) {
+				if ( event.which === $.ui.keyCode.ESCAPE && this.element.is( ":visible" ) ) {
 					this.close( event );
 					this.focusTrigger();
 				}

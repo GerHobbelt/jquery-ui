@@ -195,7 +195,7 @@ $.widget( "ui.mask", {
 		},
 		keydown: function( event ) {
 			var bufferObject,
-				key = event.keyCode,
+				key = event.which,
 				position = this._caret();
 
 			if ( event.shiftKey || event.metaKey || event.altKey || event.ctrlKey ) {

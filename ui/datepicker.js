@@ -582,11 +582,13 @@ $.extend(Datepicker.prototype, {
 
 		inst._keyEvent = true;
 		if ($.datepicker._datepickerShowing) {
-			switch (event.keyCode) {
-				case 9: $.datepicker._hideDatepicker();
+			switch (event.which) {
+				case $.ui.keyCode.TAB: 
+						$.datepicker._hideDatepicker();
 						handled = false;
 						break; // hide on tab out
-				case 13: sel = $("td." + $.datepicker._dayOverClass + ":not(." +
+				case $.ui.keyCode.ENTER: 
+						sel = $("td." + $.datepicker._dayOverClass + ":not(." +
 									$.datepicker._currentClass + ")", inst.dpDiv);
 						if (sel[0]) {
 							$.datepicker._selectDay(event.target, inst.selectedMonth, inst.selectedYear, sel[0]);
@@ -603,27 +605,33 @@ $.extend(Datepicker.prototype, {
 						}
 
 						return false; // don't submit the form
-				case 27: $.datepicker._hideDatepicker();
+				case $.ui.keyCode.ESCAPE: 
+						$.datepicker._hideDatepicker();
 						break; // hide on escape
-				case 33: $.datepicker._adjustDate(event.target, (event.ctrlKey ?
+				case $.ui.keyCode.PAGE_UP: 
+						$.datepicker._adjustDate(event.target, (event.ctrlKey ?
 							-$.datepicker._get(inst, "stepBigMonths") :
 							-$.datepicker._get(inst, "stepMonths")), "M");
 						break; // previous month/year on page up/+ ctrl
-				case 34: $.datepicker._adjustDate(event.target, (event.ctrlKey ?
+				case $.ui.keyCode.PAGE_DOWN: 
+						$.datepicker._adjustDate(event.target, (event.ctrlKey ?
 							+$.datepicker._get(inst, "stepBigMonths") :
 							+$.datepicker._get(inst, "stepMonths")), "M");
 						break; // next month/year on page down/+ ctrl
-				case 35: if (event.ctrlKey || event.metaKey) {
+				case $.ui.keyCode.END: 
+						if (event.ctrlKey || event.metaKey) {
 							$.datepicker._clearDate(event.target);
 						}
 						handled = event.ctrlKey || event.metaKey;
 						break; // clear on ctrl or command +end
-				case 36: if (event.ctrlKey || event.metaKey) {
+				case $.ui.keyCode.HOME: 
+						if (event.ctrlKey || event.metaKey) {
 							$.datepicker._gotoToday(event.target);
 						}
 						handled = event.ctrlKey || event.metaKey;
 						break; // current on ctrl or command +home
-				case 37: if (event.ctrlKey || event.metaKey) {
+				case $.ui.keyCode.LEFT: 
+						if (event.ctrlKey || event.metaKey) {
 							$.datepicker._adjustDate(event.target, (isRTL ? +1 : -1), "D");
 						}
 						handled = event.ctrlKey || event.metaKey;
@@ -635,12 +643,14 @@ $.extend(Datepicker.prototype, {
 						}
 						// next month/year on alt +left on Mac
 						break;
-				case 38: if (event.ctrlKey || event.metaKey) {
+				case $.ui.keyCode.UP: 
+						if (event.ctrlKey || event.metaKey) {
 							$.datepicker._adjustDate(event.target, -7, "D");
 						}
 						handled = event.ctrlKey || event.metaKey;
 						break; // -1 week on ctrl or command +up
-				case 39: if (event.ctrlKey || event.metaKey) {
+				case $.ui.keyCode.RIGHT: 
+						if (event.ctrlKey || event.metaKey) {
 							$.datepicker._adjustDate(event.target, (isRTL ? -1 : +1), "D");
 						}
 						handled = event.ctrlKey || event.metaKey;
@@ -652,14 +662,16 @@ $.extend(Datepicker.prototype, {
 						}
 						// next month/year on alt +right
 						break;
-				case 40: if (event.ctrlKey || event.metaKey) {
+				case $.ui.keyCode.DOWN: 
+						if (event.ctrlKey || event.metaKey) {
 							$.datepicker._adjustDate(event.target, +7, "D");
 						}
 						handled = event.ctrlKey || event.metaKey;
 						break; // +1 week on ctrl or command +down
-				default: handled = false;
+				default: 
+						handled = false;
 			}
-		} else if (event.keyCode === 36 && event.ctrlKey) { // display the date picker on ctrl+home
+		} else if (event.which === $.ui.keyCode.HOME && event.ctrlKey) { // display the date picker on ctrl+home
 			$.datepicker._showDatepicker(this);
 		} else {
 			handled = false;
