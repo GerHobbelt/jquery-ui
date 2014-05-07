@@ -327,14 +327,14 @@ return $.widget( "ui.dialog", {
 		this._on( this.uiDialog, {
 			keydown: function( event ) {
 				if ( this.options.closeOnEscape && !event.isDefaultPrevented() && event.keyCode &&
-						event.which === $.ui.keyCode.ESCAPE ) {
+						event.keyCode === $.ui.keyCode.ESCAPE ) {
 					event.preventDefault();
 					this.close( event );
 					return;
 				}
 
 				// prevent tabbing out of dialogs
-				if ( event.which !== $.ui.keyCode.TAB ) {
+				if ( event.keyCode !== $.ui.keyCode.TAB ) {
 					return;
 				}
 				var tabbables = this.uiDialog.find( ":tabbable" ),

@@ -191,7 +191,7 @@ return $.widget( "ui.accordion", {
 			currentIndex = this.headers.index( event.target ),
 			toFocus = false;
 
-		switch ( event.which ) {
+		switch ( event.keyCode ) {
 			case keyCode.RIGHT:
 			case keyCode.DOWN:
 				toFocus = this.headers[ ( currentIndex + 1 ) % length ];

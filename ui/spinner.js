@@ -239,7 +239,7 @@ return $.widget( "ui.spinner", {
 		var options = this.options,
 			keyCode = $.ui.keyCode;
 
-		switch ( event.which ) {
+		switch ( event.keyCode ) {
 		case keyCode.UP:
 			this._repeat( null, 1, event );
 			return true;

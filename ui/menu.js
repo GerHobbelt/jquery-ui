@@ -187,7 +187,7 @@ return $.widget( "ui.menu", {
 			return value.replace( /[\-\[\]{}()*+?.,\\\^$|#\s]/g, "\\$&" );
 		}
 
-		switch ( event.which ) {
+		switch ( event.keyCode ) {
 		case $.ui.keyCode.PAGE_UP:
 			this.previousPage( event );
 			break;
@@ -224,7 +224,7 @@ return $.widget( "ui.menu", {
 		default:
 			preventDefault = false;
 			prev = this.previousFilter || "";
-			character = String.fromCharCode( event.which );
+			character = String.fromCharCode( event.keyCode );
 			skip = false;
 
 			clearTimeout( this.filterTimer );
@@ -246,7 +246,7 @@ return $.widget( "ui.menu", {
 			// If no matches on the current filter, reset to the last character pressed
 			// to move down the menu to the first item that starts with that character
 			if ( !match.length ) {
-				character = String.fromCharCode( event.which );
+				character = String.fromCharCode( event.keyCode );
 				regex = new RegExp( "^" + escape( character ), "i" );
 				match = this.activeMenu.find( this.options.items ).filter(function() {
 					return regex.test( $( this ).text() );
