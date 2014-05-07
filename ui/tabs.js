@@ -152,7 +152,7 @@ return $.widget( "ui.tabs", {
 		// handle hash-string or numbers: negative, out of range
 		if ( active !== false ) {
 			active_hash = active;
-			active = this.tabs.index( this.tabs.eq( active ) );
+			active = this.tabs.index( this.tabs.eq( this._getIndex( active ) ) );
 			if ( active === -1 ) {
 				// check a string: hash match
 				this.tabs.each(function( i, tab ) {
@@ -218,7 +218,7 @@ return $.widget( "ui.tabs", {
 				event.preventDefault();
 				clearTimeout( this.activating );
 				// Determine if we should collapse or activate
-				this._activate( selectedIndex === this.options.active ? false : selectedIndex );
+				this._activate( selectedIndex === this._getIndex( this.options.active ) ? false : selectedIndex );
 				return;
 			default:
 				return;
@@ -258,11 +258,11 @@ return $.widget( "ui.tabs", {
 	// Alt+page up/down moves focus to the previous/next tab (and activates)
 	_handlePageNav: function( event ) {
 		if ( event.altKey && event.which === $.ui.keyCode.PAGE_UP ) {
-			this._activate( this._focusNextTab( this.options.active - 1, false ) );
+			this._activate( this._focusNextTab( this._getIndex( this.options.active ) - 1, false ) );
 			return true;
 		}
 		if ( event.altKey && event.which === $.ui.keyCode.PAGE_DOWN ) {
-			this._activate( this._focusNextTab( this.options.active + 1, true ) );
+			this._activate( this._focusNextTab( this._getIndex( this.options.active ) + 1, true ) );
 			return true;
 		}
 	},
@@ -353,7 +353,7 @@ return $.widget( "ui.tabs", {
 				this.active = $();
 			// activate previous tab
 			} else {
-				this._activate( this._findNextTab( Math.max( 0, options.active - 1 ), false ) );
+				this._activate( this._findNextTab( Math.max( 0, this._getIndex( options.active ) - 1 ), false ) );
 			}
 		// was active, active tab still exists
 		} else {
@@ -695,7 +695,7 @@ return $.widget( "ui.tabs", {
 	},
 
 	_findActive: function( index ) {
-		return index === false ? $() : this.tabs.eq( index );
+		return index === false ? $() : this.tabs.eq( this._getIndex( index ) );
 	},
 
 	_getIndex: function( index ) {
