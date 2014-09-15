@@ -479,7 +479,8 @@ return $.widget( "ui.selectmenu", {
 				this.button.attr( "tabindex", -1 );
 				this.close();
 			} else {
-				this.button.attr( "tabindex", 0 );
+				// If setting disabled to false, set the tabindex from the original element
+				this.button.attr( "tabindex", this.element.attr( "tabindex" ) || 0 );
 			}
 		}
 
