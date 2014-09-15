@@ -85,7 +85,7 @@ return $.widget( "ui.selectmenu", {
 		// Create button
 		this.button = $( "<span>", {
 			"class": "ui-selectmenu-button ui-widget ui-state-default ui-corner-all",
-			tabindex: tabindex || this.options.disabled ? -1 : 0,
+			tabindex: this.options.disabled ? -1 : tabindex || 0,
 			id: this.ids.button,
 			role: "combobox",
 			"aria-expanded": "false",
@@ -526,7 +526,8 @@ return $.widget( "ui.selectmenu", {
 				this.button.attr( "tabindex", -1 );
 				this.close();
 			} else {
-				this.button.attr( "tabindex", 0 );
+				// If setting disabled to false, set the tabindex from the original element (#10665)
+				this.button.attr( "tabindex", this.element.attr( "tabindex" ) || 0 );
 			}
 		}
 
