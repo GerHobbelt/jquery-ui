@@ -146,8 +146,8 @@ $.widget( "ui.timepicker", {
 				bufferObject = buffer[ bufferIndex ];
 				if ( shouldClear && this.options.clearEmpty ) {
 					bufferObject.value = "";
-                        		continue;
-                    		}
+					continue;
+				}
 				if ( bufferObject.valid === maskDefinitions._h || bufferObject.valid === maskDefinitions.hh ) {
 
 					// 12 hr mode

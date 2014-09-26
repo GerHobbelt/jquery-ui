@@ -167,7 +167,7 @@ $.widget( "ui.mask", {
 			this._caretSelect( this._seekRight( this._parseValue() ) );
 
 			this._justFocused = true;
-			this._delay(function(){
+			this._delay(function() {
 				this._justFocused = false;
 			}, 100);
 		},
@@ -201,7 +201,6 @@ $.widget( "ui.mask", {
 			if ( event.shiftKey || event.metaKey || event.altKey || event.ctrlKey ) {
 				return;
 			}
-
 
 			switch ( key ) {
 				case keyCode.ESCAPE:
@@ -409,7 +408,7 @@ $.widget( "ui.mask", {
 				index = x;
 				for ( ; x < mask.length ; x++ ) {
 					if ( mask.charAt(x) === ">" ) {
-						key = mask.substring( index + 1 , x );
+						key = mask.substring( index + 1, x );
 						if ( options.definitions[key] !== undefined ) {
 							if (this._addBuffer({
 								start: index + 1,
@@ -557,7 +556,7 @@ $.widget( "ui.mask", {
 			}
 		}
 	},
-	_shiftRight: function ( bufferPosition ) {
+	_shiftRight: function( bufferPosition ) {
 		var bufferObject,
 			temp,
 			shiftingValue = false,

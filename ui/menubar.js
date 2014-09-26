@@ -176,13 +176,13 @@ $.widget( "ui.menubar", {
 
 		if ( isFirstElement ) {
 			menuItem.data( "prevMenuItem", $( this.menuItems[collectionLength - 1]) );
-			menuItem.data( "nextMenuItem", $( this.menuItems[index+1]) );
+			menuItem.data( "nextMenuItem", $( this.menuItems[index + 1]) );
 		} else if ( isLastElement ) {
 			menuItem.data( "nextMenuItem", $( this.menuItems[0]) );
-			menuItem.data( "prevMenuItem", $( this.menuItems[index-1]) );
+			menuItem.data( "prevMenuItem", $( this.menuItems[index - 1]) );
 		} else {
-			menuItem.data( "nextMenuItem", $( this.menuItems[index+1]) );
-			menuItem.data( "prevMenuItem", $( this.menuItems[index-1]) );
+			menuItem.data( "nextMenuItem", $( this.menuItems[index + 1]) );
+			menuItem.data( "prevMenuItem", $( this.menuItems[index - 1]) );
 		}
 	},
 
@@ -209,12 +209,12 @@ $.widget( "ui.menubar", {
 			.wrapInner( "<span class='ui-button-text'></span>" );
 
 		this._on( anItem, {
-			focus:	function( event ){
+			focus:	function( event ) {
 				anItem.attr( "tabIndex", 0 );
 				anItem.addClass( "ui-state-focus" );
 				event.preventDefault();
 			},
-			focusout:  function( event ){
+			focusout:  function( event ) {
 				anItem.attr( "tabIndex", -1 );
 				this.lastFocused = anItem;
 				anItem.removeClass( "ui-state-focus" );
@@ -330,7 +330,7 @@ $.widget( "ui.menubar", {
 		}
 	},
 
-	_destroy : function() {
+	_destroy: function() {
 		this.menuItems
 			.removeClass( "ui-menubar-item" )
 			.removeAttr( "role" )
@@ -357,7 +357,7 @@ $.widget( "ui.menubar", {
 			this.items.children( "span.ui-button-text" ).unwrap();
 		} else {
 			// Does "unwrap"
-			this.items.children( "span.ui-button-text" ).each( function(){
+			this.items.children( "span.ui-button-text" ).each( function() {
 				var item = $( this );
 				item.parent().html( item.html() );
 			});

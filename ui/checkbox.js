@@ -20,7 +20,7 @@ var checkboxId = 0;
 $.widget( "ui.checkbox", {
 	version: "@VERSION",
 	options: {
-		disabled : null
+		disabled: null
 	},
 	_create: function() {
 
