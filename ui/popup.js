@@ -61,6 +61,7 @@ $.widget( "ui.popup", {
 		this._beforeClose();
 		this.element.hide();
 
+		/*jshint unused:false */
 		this._on(this.options.trigger, {
 			keydown: function( event ) {
 				switch ( event.which ) {
@@ -79,9 +80,7 @@ $.widget( "ui.popup", {
 						// TODO check for $.ui.button before using custom selector, once more below
 						if ( this.options.trigger.is( "a:ui-button" ) ) {
 							event.preventDefault();
-						}
-
-						else if (this.options.trigger.is( "a:not(:ui-button)" ) ) {
+						} else if (this.options.trigger.is( "a:not(:ui-button)" ) ) {
 							this.options.trigger.trigger( "click", event );
 						}
 						break;
@@ -125,7 +124,7 @@ $.widget( "ui.popup", {
 
 		if ( this.options.expandOnFocus ) {
 			this._on( this.options.trigger, {
-				focus : function( event ) {
+				focus: function( event ) {
 					if ( !suppressExpandOnFocus ) {
 						this._delay( function() {
 							if ( !this.isOpen ) {
@@ -144,7 +143,7 @@ $.widget( "ui.popup", {
 		}
 		if ( !this.options.managed ) {
 			//default use case, wrap tab order in popup
-			this._on({ keydown : function( event ) {
+			this._on({ keydown: function( event ) {
 					if ( event.which !== $.ui.keyCode.TAB ) {
 						return;
 					}
@@ -194,6 +193,7 @@ $.widget( "ui.popup", {
 				}
 			}
 		});
+		/*jshint unused:true */
 	},
 
 	_destroy: function() {
@@ -261,7 +261,7 @@ $.widget( "ui.popup", {
 		this._beforeClose();
 		this._hide( this.element, this.options.hide );
 
-		this.options.trigger.attr( "tabindex" , 0 );
+		this.options.trigger.attr( "tabindex", 0 );
 		if ( this.removeTabIndex ) {
 			this.element.removeAttr( "tabindex" );
 		}

@@ -416,7 +416,7 @@ return $.widget( "ui.spinner", {
 			}
 		}
 		if ( key === "icons" ) {
-			if ( this.options.alignment == "horizontal" ) {
+			if ( this.options.alignment === "horizontal" ) {
 
 				this.buttons.first().find( ".ui-icon" )
 					.removeClass( this.options.icons.left )

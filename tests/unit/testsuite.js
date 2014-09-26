@@ -14,7 +14,6 @@ QUnit.reset = function() {
 	reset.apply( this, arguments );
 };
 
-
 QUnit.config.requireExpects = true;
 
 /*
@@ -43,11 +42,10 @@ QUnit.config.urlConfig.push({
 	],
 	tooltip: "Which jQuery Core version to test against"
 });
-				url: url( "../../../ui/.jshintrc" ),
 
 TestHelpers.onFocus = function( element, onFocus ) {
-	var fn = function( event ){
-		if( !event.originalEvent ) {
+	var fn = function( event ) {
+		if ( !event.originalEvent ) {
 			return;
 		}
 		element.unbind( "focus", fn );
