@@ -4,7 +4,7 @@
 	<meta charset="utf-8">
 	<title>jQuery UI Tabs - Simple manipulation</title>
 	<link rel="stylesheet" href="../../themes/base/all.css">
-	<script src="../../tests/jquery.js"></script>
+	<script src="../../external/jquery/jquery.js"></script>
 	<script src="../../ui/position.js"></script>
 	<script src="../../ui/core.js"></script>
 	<script src="../../ui/widget.js"></script>
@@ -82,7 +82,7 @@
 		});
 
 		tabs.bind( "keyup", function( event ) {
-			if ( event.altKey && event.which === $.ui.keyCode.BACKSPACE ) {
+			if ( event.altKey && event.keyCode === $.ui.keyCode.BACKSPACE ) {
 				var panelId = tabs.find( ".ui-tabs-active" ).remove().attr( "aria-controls" );
 				$( "#" + panelId ).remove();
 				tabs.tabs( "refresh" );

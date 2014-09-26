@@ -189,6 +189,34 @@ asyncTest( "past end of menu in multiline autocomplete", function() {
 	}, 50 );
 });
 
+asyncTest( "ESCAPE in multiline autocomplete", function() {
+	expect( 2 );
+
+	var customVal = "custom value",
+		element = $( "#autocomplete-contenteditable" ).autocomplete({
+			delay: 0,
+			source: [ "javascript" ],
+			focus: function( event, ui ) {
+				equal( ui.item.value, "javascript", "Item gained focus" );
+				$( this ).text( customVal );
+				event.preventDefault();
+			}
+		});
+
+	element
+		.simulate( "focus" )
+		.autocomplete( "search", "ja" );
+
+	setTimeout(function() {
+		element.simulate( "keydown", { keyCode: $.ui.keyCode.DOWN } );
+		element.simulate( "keydown", { keyCode: $.ui.keyCode.ESCAPE } );
+		equal( element.text(), customVal );
+		start();
+	}, 50 );
+});
+
+
+
 asyncTest( "handle race condition", function() {
 	expect( 3 );
 	var count = 0,
@@ -348,13 +376,12 @@ asyncTest( "Search if the user retypes the same value (#7434)", function() {
 
 	element.val( "j" ).simulate( "keydown" );
 	setTimeout(function() {
-		equal( menu.css( "display" ), "block", "menu displays initially" );
+		ok( menu.is( ":visible" ), "menu displays initially" );
 		element.trigger( "blur" );
-		equal( menu.css( "display" ), "none", "menu hidden after blur" );
+		ok( !menu.is( ":visible" ), "menu hidden after blur" );
 		element.val( "j" ).simulate( "keydown" );
 		setTimeout(function() {
-			equal( menu.css( "display" ), "block",
-				"menu displays after typing the same value" );
+			ok( menu.is( ":visible" ), "menu displays after typing the same value" );
 			start();
 		});
 	});
