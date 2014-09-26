@@ -553,4 +553,5 @@ asyncTest( "8556: flashes when moving between two fields", function() {
 		start();
 	});
 });
+
 })(jQuery);

@@ -1,11 +1,4 @@
-define([
-	"helper/testsuite",
-	"ui/accordion"
-], function( testHelper ) {
-
-return function() {
-
-testHelper.commonWidgetTests( "accordion", {
+TestHelpers.commonWidgetTests( "accordion", {
 	defaults: {
 		active: 0,
 		animate: {},
@@ -24,8 +17,4 @@ testHelper.commonWidgetTests( "accordion", {
 		beforeActivate: null,
 		create: null
 	}
-});
-
-};
-
 });
