@@ -310,7 +310,7 @@ grunt.initConfig({
 	}
 });
 
-grunt.registerTask( "default", [ "lint", "test" ]);
+grunt.registerTask( "default", [ "lint", "sizer_all", "test" ]);
 grunt.registerTask( "lint", [ "asciilint", "jshint", "jscs", "csslint", "htmllint" ]);
 grunt.registerTask( "test", [ "qunit" ]);
 grunt.registerTask( "sizer", [ "concat:ui", "uglify:main", "compare_size:all" ]);
