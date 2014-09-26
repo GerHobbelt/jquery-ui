@@ -57,6 +57,7 @@ return $.widget( "ui.selectmenu", {
 			button: selectmenuId + "-button",
 			menu: selectmenuId + "-menu"
 		};
+		this.items = [];
 
 		this._drawButton();
 		this._drawMenu();
@@ -91,7 +92,8 @@ return $.widget( "ui.selectmenu", {
 			"aria-expanded": "false",
 			"aria-autocomplete": "list",
 			"aria-owns": this.ids.menu,
-			"aria-haspopup": "true"
+			"aria-haspopup": "true",
+			title: this.element.attr( "title" )
 		})
 			.insertAfter( this.element );
 
@@ -294,7 +296,9 @@ return $.widget( "ui.selectmenu", {
 	},
 
 	_renderItem: function( ul, item ) {
-		var li = $( "<li>" );
+		var li = $( "<li>", {
+			title: item.element.attr( "title" )
+		});
 
 		if ( item.disabled ) {
 			li.addClass( "ui-state-disabled" );
