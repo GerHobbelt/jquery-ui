@@ -5,9 +5,14 @@
  * Copyright 2014 jQuery Foundation and other contributors
  * Released under the MIT license.
  * http://jquery.org/license
- *
- * http://api.jqueryui.com/spinner/
  */
+
+//>>label: Spinner
+//>>group: Widgets
+//>>description: Displays buttons to easily input numbers via the keyboard or mouse.
+//>>docs: http://api.jqueryui.com/spinner/
+//>>demos: http://jqueryui.com/spinner/
+
 (function( factory ) {
 	if ( typeof define === "function" && define.amd ) {
 
@@ -42,9 +47,12 @@ return $.widget( "ui.spinner", {
 	widgetEventPrefix: "spin",
 	options: {
 		culture: null,
+		alignment: "right",
 		icons: {
 			down: "ui-icon-triangle-1-s",
-			up: "ui-icon-triangle-1-n"
+			up: "ui-icon-triangle-1-n",
+			left: "ui-icon-triangle-1-w",
+			right: "ui-icon-triangle-1-e"
 		},
 		incremental: true,
 		max: null,
@@ -207,6 +215,7 @@ return $.widget( "ui.spinner", {
 			.attr( "autocomplete", "off" )
 			.wrap( this._uiSpinnerHtml() )
 			.parent()
+				.addClass( "ui-spinner-" + this.options.alignment )
 				// add buttons
 				.append( this._buttonHtml() );
 
@@ -235,7 +244,7 @@ return $.widget( "ui.spinner", {
 		var options = this.options,
 			keyCode = $.ui.keyCode;
 
-		switch ( event.keyCode ) {
+		switch ( event.which ) {
 		case keyCode.UP:
 			this._repeat( null, 1, event );
 			return true;
@@ -258,13 +267,41 @@ return $.widget( "ui.spinner", {
 	},
 
 	_buttonHtml: function() {
-		return "" +
-			"<a class='ui-spinner-button ui-spinner-up ui-corner-tr'>" +
-				"<span class='ui-icon " + this.options.icons.up + "'>&#9650;</span>" +
-			"</a>" +
-			"<a class='ui-spinner-button ui-spinner-down ui-corner-br'>" +
-				"<span class='ui-icon " + this.options.icons.down + "'>&#9660;</span>" +
-			"</a>";
+
+		switch (this.options.alignment) {
+		case "right":
+			return "" +
+				"<a class='ui-spinner-button ui-spinner-up ui-corner-tr'>" +
+					"<span class='ui-icon " + this.options.icons.up + "'>&#9650;</span>" +
+				"</a>" +
+				"<a class='ui-spinner-button ui-spinner-down ui-corner-br'>" +
+					"<span class='ui-icon " + this.options.icons.down + "'>&#9660;</span>" +
+				"</a>";
+		case "left":
+			return "" +
+				"<a class='ui-spinner-button ui-spinner-up ui-corner-tl'>" +
+					"<span class='ui-icon " + this.options.icons.up + "'>&#9650;</span>" +
+				"</a>" +
+				"<a class='ui-spinner-button ui-spinner-down ui-corner-bl'>" +
+					"<span class='ui-icon " + this.options.icons.down + "'>&#9660;</span>" +
+				"</a>";
+		case "vertical":
+			return "" +
+				"<a class='ui-spinner-button ui-spinner-up ui-corner-top'>" +
+					"<span class='ui-icon " + this.options.icons.up + "'>&#9650;</span>" +
+				"</a>" +
+				"<a class='ui-spinner-button ui-spinner-down ui-corner-bottom'>" +
+					"<span class='ui-icon " + this.options.icons.down + "'>&#9660;</span>" +
+				"</a>";
+		case "horizontal":
+			return "" +
+				"<a class='ui-spinner-button ui-spinner-up ui-corner-right'>" +
+					"<span class='ui-icon " + this.options.icons.right + "'>&#9658;</span>" +
+				"</a>" +
+				"<a class='ui-spinner-button ui-spinner-down ui-corner-left'>" +
+					"<span class='ui-icon " + this.options.icons.left + "'>&#9668;</span>" +
+				"</a>";
+		}
 	},
 
 	_start: function( event ) {
@@ -384,12 +421,25 @@ return $.widget( "ui.spinner", {
 			}
 		}
 		if ( key === "icons" ) {
-			this.buttons.first().find( ".ui-icon" )
-				.removeClass( this.options.icons.up )
-				.addClass( value.up );
-			this.buttons.last().find( ".ui-icon" )
-				.removeClass( this.options.icons.down )
-				.addClass( value.down );
+			if ( this.options.alignment === "horizontal" ) {
+
+				this.buttons.first().find( ".ui-icon" )
+					.removeClass( this.options.icons.left )
+					.addClass( value.left );
+				this.buttons.last().find( ".ui-icon" )
+					.removeClass( this.options.icons.right )
+					.addClass( value.right );
+
+			} else {
+
+				this.buttons.first().find( ".ui-icon" )
+					.removeClass( this.options.icons.up )
+					.addClass( value.up );
+				this.buttons.last().find( ".ui-icon" )
+					.removeClass( this.options.icons.down )
+					.addClass( value.down );
+
+			}
 		}
 
 		this._super( key, value );
@@ -403,7 +453,6 @@ return $.widget( "ui.spinner", {
 
 	_setOptions: spinner_modifier(function( options ) {
 		this._super( options );
-		this._value( this.element.val() );
 	}),
 
 	_parse: function( val ) {

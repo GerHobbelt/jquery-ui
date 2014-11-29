@@ -5,9 +5,14 @@
  * Copyright 2014 jQuery Foundation and other contributors
  * Released under the MIT license.
  * http://jquery.org/license
- *
- * http://api.jqueryui.com/button/
  */
+
+//>>label: Button
+//>>group: Widgets
+//>>description: Enhances a form with themeable buttons.
+//>>docs: http://api.jqueryui.com/button/
+//>>demos: http://jqueryui.com/button/
+
 (function( factory ) {
 	if ( typeof define === "function" && define.amd ) {
 
@@ -174,7 +179,7 @@ $.widget( "ui.button", {
 					if ( options.disabled ) {
 						return false;
 					}
-					if ( event.keyCode === $.ui.keyCode.SPACE || event.keyCode === $.ui.keyCode.ENTER ) {
+					if ( event.which === $.ui.keyCode.SPACE || event.which === $.ui.keyCode.ENTER ) {
 						$( this ).addClass( "ui-state-active" );
 					}
 				})
@@ -186,7 +191,7 @@ $.widget( "ui.button", {
 
 			if ( this.buttonElement.is("a") ) {
 				this.buttonElement.keyup(function(event) {
-					if ( event.keyCode === $.ui.keyCode.SPACE ) {
+					if ( event.which === $.ui.keyCode.SPACE ) {
 						// TODO pass through original event correctly (just as 2nd argument doesn't work)
 						$( this ).click();
 					}
@@ -260,7 +265,11 @@ $.widget( "ui.button", {
 			this.widget().toggleClass( "ui-state-disabled", !!value );
 			this.element.prop( "disabled", !!value );
 			if ( value ) {
-				this.buttonElement.removeClass( "ui-state-focus" );
+				if ( this.type === "checkbox" || this.type === "radio" ) {
+					this.buttonElement.removeClass( "ui-state-focus" );
+				} else {
+					this.buttonElement.removeClass( "ui-state-focus ui-state-active" );
+				}
 			}
 			return;
 		}
@@ -366,15 +375,17 @@ $.widget( "ui.buttonset", {
 	},
 
 	refresh: function() {
-		var rtl = this.element.css( "direction" ) === "rtl";
+		var rtl = this.element.css( "direction" ) === "rtl",
+			allButtons = this.element.find( this.options.items ),
+			existingButtons = allButtons.filter( ":ui-button" );
 
-		this.buttons = this.element.find( this.options.items )
-			.filter( ":ui-button" )
-				.button( "refresh" )
-			.end()
-			.not( ":ui-button" )
-				.button()
-			.end()
+		// Initialize new buttons
+		allButtons.not( ":ui-button" ).button();
+
+		// Refresh existing buttons
+		existingButtons.button( "refresh" );
+
+		this.buttons = allButtons
 			.map(function() {
 				return $( this ).button( "widget" )[ 0 ];
 			})
@@ -394,7 +405,7 @@ $.widget( "ui.buttonset", {
 			.map(function() {
 				return $( this ).button( "widget" )[ 0 ];
 			})
-				.removeClass( "ui-corner-left ui-corner-right" )
+			.removeClass( "ui-corner-left ui-corner-right" )
 			.end()
 			.button( "destroy" );
 	}

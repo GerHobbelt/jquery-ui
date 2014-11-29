@@ -371,9 +371,9 @@ test("minWidth", function() {
 test( "position, default center on window", function() {
 	expect( 2 );
 
-	// dialogs alter the window width and height in FF and IE7
+	// dialogs alter the window width and height in Firefox
 	// so we collect that information before creating the dialog
-	// Support: FF, IE7
+	// Support: Firefox
 	var winWidth = $( window ).width(),
 		winHeight = $( window ).height(),
 		element = $("<div></div>").dialog(),
@@ -387,9 +387,9 @@ test( "position, default center on window", function() {
 test( "position, right bottom at right bottom via ui.position args", function() {
 	expect( 2 );
 
-	// dialogs alter the window width and height in FF and IE7
+	// dialogs alter the window width and height in Firefox
 	// so we collect that information before creating the dialog
-	// Support: FF, IE7
+	// Support: Firefox
 	var winWidth = $( window ).width(),
 		winHeight = $( window ).height(),
 		element = $("<div></div>").dialog({
@@ -484,12 +484,12 @@ test( "title", function() {
 
 	element = $( "<div></div>" ).dialog({ title: "foo" });
 		equal( titleText(), "foo", "title in init options" );
-		equal( element.dialog("option", "title"), "foo", "opiton set from options hash" );
+		equal( element.dialog("option", "title"), "foo", "option set from options hash" );
 	element.remove();
 
 	element = $( "<div title='foo'>" ).dialog({ title: "bar" });
 		equal( titleText(), "bar", "title in init options should override title in element attribute" );
-		equal( element.dialog("option", "title"), "bar", "opiton set from options hash" );
+		equal( element.dialog("option", "title"), "bar", "option set from options hash" );
 	element.remove();
 
 	element = $( "<div></div>" ).dialog().dialog( "option", "title", "foo" );

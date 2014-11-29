@@ -5,9 +5,14 @@
  * Copyright 2014 jQuery Foundation and other contributors
  * Released under the MIT license.
  * http://jquery.org/license
- *
- * http://api.jqueryui.com/slider/
  */
+
+//>>label: Slider
+//>>group: Widgets
+//>>description: Displays a flexible slider with ranges and accessibility via keyboard.
+//>>docs: http://api.jqueryui.com/slider/
+//>>demos: http://jqueryui.com/slider/
+
 (function( factory ) {
 	if ( typeof define === "function" && define.amd ) {
 
@@ -58,6 +63,7 @@ return $.widget( "ui.slider", $.ui.mouse, {
 		this._handleIndex = null;
 		this._detectOrientation();
 		this._mouseInit();
+		this._calculateNewMax();
 
 		this.element
 			.addClass( "ui-slider" +
@@ -83,7 +89,7 @@ return $.widget( "ui.slider", $.ui.mouse, {
 		var i, handleCount,
 			options = this.options,
 			existingHandles = this.element.find( ".ui-slider-handle" ).addClass( "ui-state-default ui-corner-all" ),
-			handle = "<a class='ui-slider-handle ui-state-default ui-corner-all' href='#'></a>",
+			handle = "<span class='ui-slider-handle ui-state-default ui-corner-all' tabindex='0'></span>",
 			handles = [];
 
 		handleCount = ( options.values && options.values.length ) || 1;
@@ -149,11 +155,10 @@ return $.widget( "ui.slider", $.ui.mouse, {
 	},
 
 	_setupEvents: function() {
-		var elements = this.handles.add( this.range ).filter( "a" );
-		this._off( elements );
-		this._on( elements, this._handleEvents );
-		this._hoverable( elements );
-		this._focusable( elements );
+		this._off( this.handles );
+		this._on( this.handles, this._handleEvents );
+		this._hoverable( this.handles );
+		this._focusable( this.handles );
 	},
 
 	_destroy: function() {
@@ -455,6 +460,9 @@ return $.widget( "ui.slider", $.ui.mouse, {
 					.removeClass( "ui-slider-horizontal ui-slider-vertical" )
 					.addClass( "ui-slider-" + this.orientation );
 				this._refreshValue();
+
+				// Reset positioning from previous orientation
+				this.handles.css( value === "horizontal" ? "bottom" : "left", "" );
 				break;
 			case "value":
 				this._animateOff = true;
@@ -470,9 +478,11 @@ return $.widget( "ui.slider", $.ui.mouse, {
 				}
 				this._animateOff = false;
 				break;
+			case "step":
 			case "min":
 			case "max":
 				this._animateOff = true;
+				this._calculateNewMax();
 				this._refreshValue();
 				this._animateOff = false;
 				break;
@@ -510,7 +520,7 @@ return $.widget( "ui.slider", $.ui.mouse, {
 			// .slice() creates a copy of the array
 			// this copy gets trimmed by min and max and then returned
 			vals = this.options.values.slice();
-			for ( i = 0; i < vals.length; i+= 1) {
+			for ( i = 0; i < vals.length; i += 1) {
 				vals[ i ] = this._trimAlignValue( vals[ i ] );
 			}
 
@@ -541,12 +551,17 @@ return $.widget( "ui.slider", $.ui.mouse, {
 		return parseFloat( alignValue.toFixed(5) );
 	},
 
+	_calculateNewMax: function() {
+		var remainder = ( this.options.max - this._valueMin() ) % this.options.step;
+		this.max = this.options.max - remainder;
+	},
+
 	_valueMin: function() {
 		return this.options.min;
 	},
 
 	_valueMax: function() {
-		return this.options.max;
+		return this.max;
 	},
 
 	_refreshValue: function() {
@@ -611,7 +626,7 @@ return $.widget( "ui.slider", $.ui.mouse, {
 			var allowed, curVal, newVal, step,
 				index = $( event.target ).data( "ui-slider-handle-index" );
 
-			switch ( event.keyCode ) {
+			switch ( event.which ) {
 				case $.ui.keyCode.HOME:
 				case $.ui.keyCode.END:
 				case $.ui.keyCode.PAGE_UP:
@@ -639,7 +654,7 @@ return $.widget( "ui.slider", $.ui.mouse, {
 				curVal = newVal = this.value();
 			}
 
-			switch ( event.keyCode ) {
+			switch ( event.which ) {
 				case $.ui.keyCode.HOME:
 					newVal = this._valueMin();
 					break;
@@ -672,9 +687,6 @@ return $.widget( "ui.slider", $.ui.mouse, {
 			}
 
 			this._slide( event, index, newVal );
-		},
-		click: function( event ) {
-			event.preventDefault();
 		},
 		keyup: function( event ) {
 			var index = $( event.target ).data( "ui-slider-handle-index" );

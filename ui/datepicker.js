@@ -5,9 +5,14 @@
  * Copyright 2014 jQuery Foundation and other contributors
  * Released under the MIT license.
  * http://jquery.org/license
- *
- * http://api.jqueryui.com/datepicker/
  */
+
+//>>label: Datepicker
+//>>group: Widgets
+//>>description: Displays a calendar from an input or inline for selecting dates.
+//>>docs: http://api.jqueryui.com/datepicker/
+//>>demos: http://jqueryui.com/datepicker/
+
 (function( factory ) {
 	if ( typeof define === "function" && define.amd ) {
 
@@ -139,6 +144,8 @@ function Datepicker() {
 		disabled: false // The initial disabled state
 	};
 	$.extend(this._defaults, this.regional[""]);
+	this.regional.en = $.extend( true, {}, this.regional[ "" ]);
+	this.regional[ "en-US" ] = $.extend( true, {}, this.regional.en );
 	this.dpDiv = datepicker_bindHover($("<div id='" + this._mainDivId + "' class='ui-datepicker ui-widget ui-widget-content ui-helper-clearfix ui-corner-all'></div>"));
 }
 
@@ -387,6 +394,10 @@ $.extend(Datepicker.prototype, {
 		} else if (nodeName === "div" || nodeName === "span") {
 			$target.removeClass(this.markerClassName).empty();
 		}
+
+		if ( datepicker_instActive === inst ) {
+			datepicker_instActive = null;
+		}
 	},
 
 	/* Enable the date picker to a jQuery selection.
@@ -582,11 +593,13 @@ $.extend(Datepicker.prototype, {
 
 		inst._keyEvent = true;
 		if ($.datepicker._datepickerShowing) {
-			switch (event.keyCode) {
-				case 9: $.datepicker._hideDatepicker();
+			switch (event.which) {
+				case $.ui.keyCode.TAB: 
+						$.datepicker._hideDatepicker();
 						handled = false;
 						break; // hide on tab out
-				case 13: sel = $("td." + $.datepicker._dayOverClass + ":not(." +
+				case $.ui.keyCode.ENTER: 
+						sel = $("td." + $.datepicker._dayOverClass + ":not(." +
 									$.datepicker._currentClass + ")", inst.dpDiv);
 						if (sel[0]) {
 							$.datepicker._selectDay(event.target, inst.selectedMonth, inst.selectedYear, sel[0]);
@@ -603,27 +616,33 @@ $.extend(Datepicker.prototype, {
 						}
 
 						return false; // don't submit the form
-				case 27: $.datepicker._hideDatepicker();
+				case $.ui.keyCode.ESCAPE: 
+						$.datepicker._hideDatepicker();
 						break; // hide on escape
-				case 33: $.datepicker._adjustDate(event.target, (event.ctrlKey ?
+				case $.ui.keyCode.PAGE_UP: 
+						$.datepicker._adjustDate(event.target, (event.ctrlKey ?
 							-$.datepicker._get(inst, "stepBigMonths") :
 							-$.datepicker._get(inst, "stepMonths")), "M");
 						break; // previous month/year on page up/+ ctrl
-				case 34: $.datepicker._adjustDate(event.target, (event.ctrlKey ?
+				case $.ui.keyCode.PAGE_DOWN: 
+						$.datepicker._adjustDate(event.target, (event.ctrlKey ?
 							+$.datepicker._get(inst, "stepBigMonths") :
 							+$.datepicker._get(inst, "stepMonths")), "M");
 						break; // next month/year on page down/+ ctrl
-				case 35: if (event.ctrlKey || event.metaKey) {
+				case $.ui.keyCode.END: 
+						if (event.ctrlKey || event.metaKey) {
 							$.datepicker._clearDate(event.target);
 						}
 						handled = event.ctrlKey || event.metaKey;
 						break; // clear on ctrl or command +end
-				case 36: if (event.ctrlKey || event.metaKey) {
+				case $.ui.keyCode.HOME: 
+						if (event.ctrlKey || event.metaKey) {
 							$.datepicker._gotoToday(event.target);
 						}
 						handled = event.ctrlKey || event.metaKey;
 						break; // current on ctrl or command +home
-				case 37: if (event.ctrlKey || event.metaKey) {
+				case $.ui.keyCode.LEFT: 
+						if (event.ctrlKey || event.metaKey) {
 							$.datepicker._adjustDate(event.target, (isRTL ? +1 : -1), "D");
 						}
 						handled = event.ctrlKey || event.metaKey;
@@ -635,12 +654,14 @@ $.extend(Datepicker.prototype, {
 						}
 						// next month/year on alt +left on Mac
 						break;
-				case 38: if (event.ctrlKey || event.metaKey) {
+				case $.ui.keyCode.UP: 
+						if (event.ctrlKey || event.metaKey) {
 							$.datepicker._adjustDate(event.target, -7, "D");
 						}
 						handled = event.ctrlKey || event.metaKey;
 						break; // -1 week on ctrl or command +up
-				case 39: if (event.ctrlKey || event.metaKey) {
+				case $.ui.keyCode.RIGHT: 
+						if (event.ctrlKey || event.metaKey) {
 							$.datepicker._adjustDate(event.target, (isRTL ? -1 : +1), "D");
 						}
 						handled = event.ctrlKey || event.metaKey;
@@ -652,14 +673,16 @@ $.extend(Datepicker.prototype, {
 						}
 						// next month/year on alt +right
 						break;
-				case 40: if (event.ctrlKey || event.metaKey) {
+				case $.ui.keyCode.DOWN: 
+						if (event.ctrlKey || event.metaKey) {
 							$.datepicker._adjustDate(event.target, +7, "D");
 						}
 						handled = event.ctrlKey || event.metaKey;
 						break; // +1 week on ctrl or command +down
-				default: handled = false;
+				default: 
+						handled = false;
 			}
-		} else if (event.keyCode === 36 && event.ctrlKey) { // display the date picker on ctrl+home
+		} else if (event.which === $.ui.keyCode.HOME && event.ctrlKey) { // display the date picker on ctrl+home
 			$.datepicker._showDatepicker(this);
 		} else {
 			handled = false;
@@ -797,12 +820,16 @@ $.extend(Datepicker.prototype, {
 		datepicker_instActive = inst; // for delegate hover events
 		inst.dpDiv.empty().append(this._generateHTML(inst));
 		this._attachHandlers(inst);
-		inst.dpDiv.find("." + this._dayOverClass + " a").mouseover();
 
 		var origyearshtml,
 			numMonths = this._getNumberOfMonths(inst),
 			cols = numMonths[1],
-			width = 17;
+			width = 17,
+			activeCell = inst.dpDiv.find( "." + this._dayOverClass + " a" );
+
+		if ( activeCell.length > 0 ) {
+			datepicker_handleMouseover.apply( activeCell.get( 0 ) );
+		}
 
 		inst.dpDiv.removeClass("ui-datepicker-multi-2 ui-datepicker-multi-3 ui-datepicker-multi-4").width("");
 		if (cols > 1) {
@@ -1019,7 +1046,9 @@ $.extend(Datepicker.prototype, {
 	_selectDate: function(id, dateStr) {
 		var onSelect,
 			target = $(id),
-			inst = this._getInst(target[0]);
+			inst = this._getInst(target[0]),
+			currentInst = null,
+			nextInst = null;
 
 		dateStr = (dateStr != null ? dateStr : this._formatDate(inst));
 		if (inst.input) {
@@ -1028,8 +1057,10 @@ $.extend(Datepicker.prototype, {
 		this._updateAlternate(inst);
 
 		onSelect = this._get(inst, "onSelect");
+		currentInst = inst;
 		if (onSelect) {
 			onSelect.apply((inst.input ? inst.input[0] : null), [dateStr, inst]);  // trigger custom callback
+			nextInst = this._curInst;
 		} else if (inst.input) {
 			inst.input.trigger("change"); // fire the change event
 		}
@@ -1037,7 +1068,9 @@ $.extend(Datepicker.prototype, {
 		if (inst.inline){
 			this._updateDatepicker(inst);
 		} else {
-			this._hideDatepicker();
+			if (!nextInst || nextInst === currentInst) {
+				this._hideDatepicker();
+			}
 			this._lastInput = inst.input[0];
 			if (typeof(inst.input[0]) !== "object") {
 				inst.input.focus(); // restore focus
@@ -1136,7 +1169,8 @@ $.extend(Datepicker.prototype, {
 				var isDoubled = lookAhead(match),
 					size = (match === "@" ? 14 : (match === "!" ? 20 :
 					(match === "y" && isDoubled ? 4 : (match === "o" ? 3 : 2)))),
-					digits = new RegExp("^\\d{1," + size + "}"),
+					minSize = (match === "y" ? size : 1),
+					digits = new RegExp("^\\d{" + minSize + "," + size + "}"),
 					num = value.substring(iValue).match(digits);
 				if (!num) {
 					throw "Missing number at position " + iValue;
@@ -1997,18 +2031,20 @@ function datepicker_bindHover(dpDiv) {
 				$(this).removeClass("ui-datepicker-next-hover");
 			}
 		})
-		.delegate(selector, "mouseover", function(){
-			if (!$.datepicker._isDisabledDatepicker( datepicker_instActive.inline ? dpDiv.parent()[0] : datepicker_instActive.input[0])) {
-				$(this).parents(".ui-datepicker-calendar").find("a").removeClass("ui-state-hover");
-				$(this).addClass("ui-state-hover");
-				if (this.className.indexOf("ui-datepicker-prev") !== -1) {
-					$(this).addClass("ui-datepicker-prev-hover");
-				}
-				if (this.className.indexOf("ui-datepicker-next") !== -1) {
-					$(this).addClass("ui-datepicker-next-hover");
-				}
-			}
-		});
+		.delegate( selector, "mouseover", datepicker_handleMouseover );
+}
+
+function datepicker_handleMouseover() {
+	if (!$.datepicker._isDisabledDatepicker( datepicker_instActive.inline? datepicker_instActive.dpDiv.parent()[0] : datepicker_instActive.input[0])) {
+		$(this).parents(".ui-datepicker-calendar").find("a").removeClass("ui-state-hover");
+		$(this).addClass("ui-state-hover");
+		if (this.className.indexOf("ui-datepicker-prev") !== -1) {
+			$(this).addClass("ui-datepicker-prev-hover");
+		}
+		if (this.className.indexOf("ui-datepicker-next") !== -1) {
+			$(this).addClass("ui-datepicker-next-hover");
+		}
+	}
 }
 
 /* jQuery extend now ignores nulls! */

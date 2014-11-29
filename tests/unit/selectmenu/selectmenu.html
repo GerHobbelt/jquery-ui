@@ -5,9 +5,9 @@
 	<title>jQuery UI Selectmenu Test Suite</title>
 
 	<script src="../../jquery.js"></script>
-	<link rel="stylesheet" href="../../../external/qunit.css">
-	<script src="../../../external/qunit.js"></script>
-	<script src="../../jquery.simulate.js"></script>
+	<link rel="stylesheet" href="../../../external/qunit/qunit.css">
+	<script src="../../../external/qunit/qunit.js"></script>
+	<script src="../../../external/jquery-simulate/jquery.simulate.js"></script>
 	<script src="../testsuite.js"></script>
 	<script>
 	TestHelpers.loadResources({
@@ -81,6 +81,23 @@
 			<option value="someotherfile">Some other file</option>
 		</optgroup>
 	</select>
+
+	<div id="selectmenu-wrap3">
+		<select id="speed1" tabindex="2">
+			<option value="Slower">Slower</option>
+			<option value="Slow">Slow</option>
+			<option value="Medium" selected="selected">Medium</option>
+			<option value="Fast">Fast</option>
+			<option value="Faster">Faster</option>
+		</select>
+		<select id="speed2" tabindex="3">
+			<option value="Slower">Slower</option>
+			<option value="Slow">Slow</option>
+			<option value="Medium" selected="selected">Medium</option>
+			<option value="Fast">Fast</option>
+			<option value="Faster">Faster</option>
+		</select>
+	</div>
 
 </div>
 </body>

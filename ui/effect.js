@@ -5,9 +5,14 @@
  * Copyright 2014 jQuery Foundation and other contributors
  * Released under the MIT license.
  * http://jquery.org/license
- *
- * http://api.jqueryui.com/category/effects-core/
  */
+
+//>>label: Effects Core
+//>>group: Effects
+//>>description: Extends the internal jQuery effects. Includes morphing and easing. Required by all other effects.
+//>>docs: http://api.jqueryui.com/category/effects-core/
+//>>demos: http://jqueryui.com/effect/
+
 (function( factory ) {
 	if ( typeof define === "function" && define.amd ) {
 
@@ -20,7 +25,11 @@
 	}
 }(function( $ ) {
 
-var dataSpace = "ui-effects-";
+var dataSpace = "ui-effects-",
+
+	// Create a local jQuery because jQuery Color relies on it and the
+	// global may not exist with AMD and a custom build (#10199)
+	jQuery = $;
 
 $.effects = {
 	effect: {}
@@ -629,7 +638,7 @@ color.hook = function( hook ) {
 				}
 				try {
 					elem.style[ hook ] = value;
-				} catch( e ) {
+				} catch ( e ) {
 					// wrapped to prevent IE from throwing errors on "invalid" values like 'auto' or 'inherit'
 				}
 			}
@@ -994,7 +1003,7 @@ $.extend( $.effects, {
 		// https://bugzilla.mozilla.org/show_bug.cgi?id=561664
 		try {
 			active.id;
-		} catch( e ) {
+		} catch ( e ) {
 			active = document.body;
 		}
 

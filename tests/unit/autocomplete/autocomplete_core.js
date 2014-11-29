@@ -16,7 +16,8 @@ test( "prevent form submit on enter when menu is active", function() {
 	event = $.Event( "keydown" );
 	event.keyCode = $.ui.keyCode.DOWN;
 	element.trigger( event );
-	equal( menu.find( ".ui-menu-item.ui-state-focus" ).length, 1, "menu item is active" );
+	equal( menu.find( ".ui-menu-item-wrapper.ui-state-focus" ).length, 1,
+		"menu item is active" );
 
 	event = $.Event( "keydown" );
 	event.keyCode = $.ui.keyCode.ENTER;
@@ -189,6 +190,34 @@ asyncTest( "past end of menu in multiline autocomplete", function() {
 	}, 50 );
 });
 
+asyncTest( "ESCAPE in multiline autocomplete", function() {
+	expect( 2 );
+
+	var customVal = "custom value",
+		element = $( "#autocomplete-contenteditable" ).autocomplete({
+			delay: 0,
+			source: [ "javascript" ],
+			focus: function( event, ui ) {
+				equal( ui.item.value, "javascript", "Item gained focus" );
+				$( this ).text( customVal );
+				event.preventDefault();
+			}
+		});
+
+	element
+		.simulate( "focus" )
+		.autocomplete( "search", "ja" );
+
+	setTimeout(function() {
+		element.simulate( "keydown", { keyCode: $.ui.keyCode.DOWN } );
+		element.simulate( "keydown", { keyCode: $.ui.keyCode.ESCAPE } );
+		equal( element.text(), customVal );
+		start();
+	}, 50 );
+});
+
+
+
 asyncTest( "handle race condition", function() {
 	expect( 3 );
 	var count = 0,
@@ -336,6 +365,27 @@ test( ".replaceWith() (#9172)", function() {
 		parent = element.parent();
 	element.replaceWith( replacement );
 	equal( parent.html().toLowerCase(), replacement );
+});
+
+asyncTest( "Search if the user retypes the same value (#7434)", function() {
+	expect( 3 );
+	var element = $( "#autocomplete" ).autocomplete({
+			source: [ "java", "javascript" ],
+			delay: 0
+		}),
+		menu = element.autocomplete( "instance" ).menu.element;
+
+	element.val( "j" ).simulate( "keydown" );
+	setTimeout(function() {
+		ok( menu.is( ":visible" ), "menu displays initially" );
+		element.trigger( "blur" );
+		ok( !menu.is( ":visible" ), "menu hidden after blur" );
+		element.val( "j" ).simulate( "keydown" );
+		setTimeout(function() {
+			ok( menu.is( ":visible" ), "menu displays after typing the same value" );
+			start();
+		});
+	});
 });
 
 }( jQuery ) );

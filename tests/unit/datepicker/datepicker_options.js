@@ -947,7 +947,7 @@ test("parseDate", function() {
 	fr = $.datepicker.regional.fr;
 	settings = {dayNamesShort: fr.dayNamesShort, dayNames: fr.dayNames,
 		monthNamesShort: fr.monthNamesShort, monthNames: fr.monthNames};
-	TestHelpers.datepicker.equalsDate($.datepicker.parseDate("D d M y", "Lun. 9 Avril 01", settings),
+	TestHelpers.datepicker.equalsDate($.datepicker.parseDate("D d M y", "Lun. 9 avr. 01", settings),
 		new Date(2001, 4 - 1, 9), "Parse date D M y with settings");
 	TestHelpers.datepicker.equalsDate($.datepicker.parseDate("d MM DD yy", "9 Avril Lundi 2001", settings),
 		new Date(2001, 4 - 1, 9), "Parse date d MM DD yy with settings");
@@ -962,7 +962,7 @@ test("parseDate", function() {
 });
 
 test("parseDateErrors", function() {
-	expect( 17 );
+	expect( 18 );
 	TestHelpers.datepicker.init("#inp");
 	var fr, settings;
 	function expectError(expr, value, error) {
@@ -986,6 +986,8 @@ test("parseDateErrors", function() {
 		"3 Feb 01 - d m y", "Missing number at position 2");
 	expectError(function() { $.datepicker.parseDate("dd mm yy", "3 Feb 01"); },
 		"3 Feb 01 - dd mm yy", "Missing number at position 2");
+	expectError(function() { $.datepicker.parseDate("mm dd yy", "2 1 01"); },
+		"2 1 01 - dd mm yy", "Missing number at position 4");
 	expectError(function() { $.datepicker.parseDate("d m y", "3 2 AD01"); },
 		"3 2 AD01 - d m y", "Missing number at position 4");
 	expectError(function() { $.datepicker.parseDate("d m yy", "3 2 AD01"); },
@@ -1067,7 +1069,7 @@ test("formatDate", function() {
 	settings = {dayNamesShort: fr.dayNamesShort, dayNames: fr.dayNames,
 		monthNamesShort: fr.monthNamesShort, monthNames: fr.monthNames};
 	equal($.datepicker.formatDate("D M y", new Date(2001, 4 - 1, 9), settings),
-		"lun. avril 01", "Format date D M y with settings");
+		"lun. avr. 01", "Format date D M y with settings");
 	equal($.datepicker.formatDate("DD MM yy", new Date(2001, 4 - 1, 9), settings),
 		"lundi avril 2001", "Format date DD MM yy with settings");
 	equal($.datepicker.formatDate("DD, MM d, yy", new Date(2001, 4 - 1, 9), settings),

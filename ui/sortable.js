@@ -5,9 +5,14 @@
  * Copyright 2014 jQuery Foundation and other contributors
  * Released under the MIT license.
  * http://jquery.org/license
- *
- * http://api.jqueryui.com/sortable/
  */
+
+//>>label: Sortable
+//>>group: Interactions
+//>>description: Enables items in a list to be sorted using the mouse.
+//>>docs: http://api.jqueryui.com/sortable/
+//>>demos: http://jqueryui.com/sortable/
+
 (function( factory ) {
 	if ( typeof define === "function" && define.amd ) {
 
@@ -77,16 +82,11 @@ return $.widget("ui.sortable", $.ui.mouse, {
 	},
 
 	_create: function() {
-
-		var o = this.options;
 		this.containerCache = {};
 		this.element.addClass("ui-sortable");
 
 		//Get the items
 		this.refresh();
-
-		//Let's determine if the items are being displayed horizontally
-		this.floating = this.items.length ? o.axis === "x" || this._isFloating(this.items[0].item) : false;
 
 		//Let's determine the parent's offset
 		this.offset = this.element.offset();
@@ -238,13 +238,13 @@ return $.widget("ui.sortable", $.ui.mouse, {
 		//Cache the former DOM position
 		this.domPosition = { prev: this.currentItem.prev()[0], parent: this.currentItem.parent()[0] };
 
+		//Create the placeholder
+		this._createPlaceholder();
+
 		//If the helper is not the original, hide the original so it's not playing any role during the drag, won't cause anything bad this way
 		if(this.helper[0] !== this.currentItem[0]) {
 			this.currentItem.hide();
 		}
-
-		//Create the placeholder
-		this._createPlaceholder();
 
 		//Set a containment if given in the options
 		if(o.containment) {
@@ -391,7 +391,7 @@ return $.widget("ui.sortable", $.ui.mouse, {
 			// currentContainer is switched before the placeholder is moved.
 			//
 			// Without this, moving items in "sub-sortables" can cause
-			// the placeholder to jitter beetween the outer and inner container.
+			// the placeholder to jitter between the outer and inner container.
 			if (item.instance !== this.currentContainer) {
 				continue;
 			}
@@ -731,6 +731,11 @@ return $.widget("ui.sortable", $.ui.mouse, {
 
 	refreshPositions: function(fast) {
 
+		// Determine whether items are being displayed horizontally
+		this.floating = this.items.length ?
+			this.options.axis === "x" || this._isFloating( this.items[ 0 ].item ) :
+			false;
+
 		//This has to be redone because due to the item being moved out/into the offsetParent, the offsetParent's position will change
 		if(this.offsetParent && this.helper) {
 			this.offset.parent = this._getParentOffset();
@@ -911,6 +916,10 @@ return $.widget("ui.sortable", $.ui.mouse, {
 			}
 
 			if(this.currentContainer === this.containers[innermostIndex]) {
+				if ( !this.currentContainer.containerCache.over ) {
+					this.containers[ innermostIndex ]._trigger( "over", event, this._uiHash() );
+					this.currentContainer.containerCache.over = 1;
+				}
 				return;
 			}
 
@@ -1249,18 +1258,6 @@ return $.widget("ui.sortable", $.ui.mouse, {
 		}
 
 		this.dragging = false;
-		if(this.cancelHelperRemoval) {
-			if(!noPropagation) {
-				this._trigger("beforeStop", event, this._uiHash());
-				for (i=0; i < delayedTriggers.length; i++) {
-					delayedTriggers[i].call(this, event);
-				} //Trigger all delayed events
-				this._trigger("stop", event, this._uiHash());
-			}
-
-			this.fromOutside = false;
-			return false;
-		}
 
 		if(!noPropagation) {
 			this._trigger("beforeStop", event, this._uiHash());
@@ -1269,10 +1266,12 @@ return $.widget("ui.sortable", $.ui.mouse, {
 		//$(this.placeholder[0]).remove(); would have been the jQuery way - unfortunately, it unbinds ALL events from the original node!
 		this.placeholder[0].parentNode.removeChild(this.placeholder[0]);
 
-		if(this.helper[0] !== this.currentItem[0]) {
-			this.helper.remove();
+		if ( !this.cancelHelperRemoval ) {
+			if ( this.helper[ 0 ] !== this.currentItem[ 0 ] ) {
+				this.helper.remove();
+			}
+			this.helper = null;
 		}
-		this.helper = null;
 
 		if(!noPropagation) {
 			for (i=0; i < delayedTriggers.length; i++) {
@@ -1282,7 +1281,7 @@ return $.widget("ui.sortable", $.ui.mouse, {
 		}
 
 		this.fromOutside = false;
-		return true;
+		return !this.cancelHelperRemoval;
 
 	},
 

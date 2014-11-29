@@ -6,8 +6,14 @@
  * Released under the MIT license.
  * http://jquery.org/license
  *
- * http://api.jqueryui.com/category/ui-core/
  */
+
+//>>label: Core
+//>>group: UI Core
+//>>description: The core of jQuery UI, required for all interactions and widgets.
+//>>docs: http://api.jqueryui.com/category/ui-core/
+//>>demos: http://jqueryui.com/
+
 (function( factory ) {
 	if ( typeof define === "function" && define.amd ) {
 
@@ -48,15 +54,16 @@ $.extend( $.ui, {
 
 // plugins
 $.fn.extend({
-	scrollParent: function() {
+	scrollParent: function( includeHidden ) {
 		var position = this.css( "position" ),
 			excludeStaticParent = position === "absolute",
+			overflowRegex = includeHidden ? /(auto|scroll|hidden)/ : /(auto|scroll)/,
 			scrollParent = this.parents().filter( function() {
 				var parent = $( this );
 				if ( excludeStaticParent && parent.css( "position" ) === "static" ) {
 					return false;
 				}
-				return (/(auto|scroll)/).test( parent.css( "overflow" ) + parent.css( "overflow-y" ) + parent.css( "overflow-x" ) );
+				return overflowRegex.test( parent.css( "overflow" ) + parent.css( "overflow-y" ) + parent.css( "overflow-x" ) );
 			}).eq( 0 );
 
 		return position === "fixed" || !scrollParent.length ? $( this[ 0 ].ownerDocument || document ) : scrollParent;
@@ -93,7 +100,7 @@ function focusable( element, isTabIndexNotNaN ) {
 		if ( !element.href || !mapName || map.nodeName.toLowerCase() !== "map" ) {
 			return false;
 		}
-		img = $( "img[usemap=#" + mapName + "]" )[0];
+		img = $( "img[usemap='#" + mapName + "']" )[ 0 ];
 		return !!img && visible( img );
 	}
 	return ( /input|select|textarea|button|object/.test( nodeName ) ?
@@ -207,62 +214,21 @@ if ( $( "<a>" ).data( "a-b", "a" ).removeData( "a-b" ).data( "a-b" ) ) {
 // deprecated
 $.ui.ie = !!/msie [\w.]+/.exec( navigator.userAgent.toLowerCase() );
 
-$.support.selectstart = "onselectstart" in document.createElement( "div" );
 $.fn.extend({
-	focus: (function( orig ) {
-		return function( delay, fn ) {
-			return typeof delay === "number" ?
-				this.each(function() {
-					var elem = this;
-					setTimeout(function() {
-						$( elem ).focus();
-						if ( fn ) {
-							fn.call( elem );
-						}
-					}, delay );
-				}) :
-				orig.apply( this, arguments );
-		};
-	})( $.fn.focus ),
+	disableSelection: (function() {
+		var eventType = "onselectstart" in document.createElement( "div" ) ?
+			"selectstart" :
+			"mousedown";
 
-	disableSelection: function() {
-		return this.bind( ( $.support.selectstart ? "selectstart" : "mousedown" ) +
-			".ui-disableSelection", function( event ) {
+		return function() {
+			return this.bind( eventType + ".ui-disableSelection", function( event ) {
 				event.preventDefault();
 			});
-	},
+		};
+	})(),
 
 	enableSelection: function() {
 		return this.unbind( ".ui-disableSelection" );
-	},
-
-	zIndex: function( zIndex ) {
-		if ( zIndex !== undefined ) {
-			return this.css( "zIndex", zIndex );
-		}
-
-		if ( this.length ) {
-			var elem = $( this[ 0 ] ), position, value;
-			while ( elem.length && elem[ 0 ] !== document ) {
-				// Ignore z-index if position is set to a value where z-index is ignored by the browser
-				// This makes behavior of this function consistent across browsers
-				// WebKit always returns auto if the element is positioned
-				position = elem.css( "position" );
-				if ( position === "absolute" || position === "relative" || position === "fixed" ) {
-					// IE returns 0 when zIndex is not specified
-					// other browsers return a string
-					// we ignore the case of nested elements with an explicit value of 0
-					// <div style="z-index: -10;"><div style="z-index: 0;"></div></div>
-					value = parseInt( elem.css( "zIndex" ), 10 );
-					if ( !isNaN( value ) && value !== 0 ) {
-						return value;
-					}
-				}
-				elem = elem.parent();
-			}
-		}
-
-		return 0;
 	}
 });
 

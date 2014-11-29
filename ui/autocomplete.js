@@ -5,9 +5,14 @@
  * Copyright 2014 jQuery Foundation and other contributors
  * Released under the MIT license.
  * http://jquery.org/license
- *
- * http://api.jqueryui.com/autocomplete/
  */
+
+//>>label: Autocomplete
+//>>group: Widgets
+//>>description: Lists suggested words as the user is typing.
+//>>docs: http://api.jqueryui.com/autocomplete/
+//>>demos: http://jqueryui.com/autocomplete/
+
 (function( factory ) {
 	if ( typeof define === "function" && define.amd ) {
 
@@ -96,7 +101,7 @@ $.widget( "ui.autocomplete", {
 				suppressInput = false;
 				suppressKeyPressRepeat = false;
 				var keyCode = $.ui.keyCode;
-				switch ( event.keyCode ) {
+				switch ( event.which ) {
 				case keyCode.PAGE_UP:
 					suppressKeyPress = true;
 					this._move( "previousPage", event );
@@ -130,7 +135,9 @@ $.widget( "ui.autocomplete", {
 					break;
 				case keyCode.ESCAPE:
 					if ( this.menu.element.is( ":visible" ) ) {
-						this._value( this.term );
+						if ( !this.isMultiLine ) {
+							this._value( this.term );
+						}
 						this.close( event );
 						// Different browsers have different default behavior for escape
 						// Single press can mean undo or clear
@@ -159,7 +166,7 @@ $.widget( "ui.autocomplete", {
 
 				// replicate some key handlers to allow them to repeat in Firefox and Opera
 				var keyCode = $.ui.keyCode;
-				switch ( event.keyCode ) {
+				switch ( event.which ) {
 				case keyCode.PAGE_UP:
 					this._move( "previousPage", event );
 					break;
@@ -266,7 +273,7 @@ $.widget( "ui.autocomplete", {
 
 				// Announce the value in the liveRegion
 				label = ui.item.attr( "aria-label" ) || item.value;
-				if ( label && jQuery.trim( label ).length ) {
+				if ( label && $.trim( label ).length ) {
 					this.liveRegion.children().hide();
 					$( "<div>" ).text( label ).appendTo( this.liveRegion );
 				}
@@ -394,8 +401,13 @@ $.widget( "ui.autocomplete", {
 	_searchTimeout: function( event ) {
 		clearTimeout( this.searching );
 		this.searching = this._delay(function() {
-			// only search if the value has changed
-			if ( this.term !== this._value() ) {
+
+			// Search if the value has changed, or if the user retypes the same value (see #7434)
+			var equalValues = this.term === this._value(),
+				menuVisible = this.menu.element.is( ":visible" ),
+				modifierKey = event.altKey || event.ctrlKey || event.metaKey || event.shiftKey;
+
+			if ( !equalValues || ( equalValues && !menuVisible && !modifierKey ) ) {
 				this.selectedItem = null;
 				this.search( null, event );
 			}
@@ -535,7 +547,9 @@ $.widget( "ui.autocomplete", {
 	},
 
 	_renderItem: function( ul, item ) {
-		return $( "<li>" ).text( item.label ).appendTo( ul );
+		return $( "<li>" )
+			.append( $( "<div>" ).text( item.label ) )
+			.appendTo( ul );
 	},
 
 	_move: function( direction, event ) {

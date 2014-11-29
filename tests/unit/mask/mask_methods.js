@@ -31,7 +31,7 @@ test( "value: able to get (and set) raw values with optional section", function(
 		mask: "(999) 999-9999?x9999"
 	});
 
-	equal( input.mask('value'), "1234", "Reading initial value" );
+	equal( input.mask("value"), "1234", "Reading initial value" );
 
 	input.mask( "value", "123456" );
 

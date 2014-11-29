@@ -5,9 +5,14 @@
  * Copyright 2014 jQuery Foundation and other contributors
  * Released under the MIT license.
  * http://jquery.org/license
- *
- * http://api.jqueryui.com/accordion/
  */
+
+//>>label: Accordion
+//>>group: Widgets
+//>>description: Displays collapsible content panels for presenting information in a limited amount of space.
+//>>docs: http://api.jqueryui.com/accordion/
+//>>demos: http://jqueryui.com/accordion/
+
 (function( factory ) {
 	if ( typeof define === "function" && define.amd ) {
 
@@ -191,7 +196,7 @@ return $.widget( "ui.accordion", {
 			currentIndex = this.headers.index( event.target ),
 			toFocus = false;
 
-		switch ( event.keyCode ) {
+		switch ( event.which ) {
 			case keyCode.RIGHT:
 			case keyCode.DOWN:
 				toFocus = this.headers[ ( currentIndex + 1 ) % length ];
@@ -221,7 +226,7 @@ return $.widget( "ui.accordion", {
 	},
 
 	_panelKeyDown: function( event ) {
-		if ( event.keyCode === $.ui.keyCode.UP && event.ctrlKey ) {
+		if ( event.which === $.ui.keyCode.UP && event.ctrlKey ) {
 			$( event.currentTarget ).prev().focus();
 		}
 	},
@@ -259,13 +264,22 @@ return $.widget( "ui.accordion", {
 	},
 
 	_processPanels: function() {
+		var prevHeaders = this.headers,
+			prevPanels = this.panels;
+
 		this.headers = this.element.find( this.options.header )
 			.addClass( "ui-accordion-header ui-state-default ui-corner-all" );
 
-		this.headers.next()
+		this.panels = this.headers.next()
 			.addClass( "ui-accordion-content ui-helper-reset ui-widget-content ui-corner-bottom" )
 			.filter( ":not(.ui-accordion-content-active)" )
 			.hide();
+
+		// Avoid memory leaks (#10056)
+		if ( prevPanels ) {
+			this._off( prevHeaders.not( this.headers ) );
+			this._off( prevPanels.not( this.panels ) );
+		}
 	},
 
 	_refresh: function() {
