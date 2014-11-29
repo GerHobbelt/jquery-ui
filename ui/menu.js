@@ -5,9 +5,14 @@
  * Copyright 2014 jQuery Foundation and other contributors
  * Released under the MIT license.
  * http://jquery.org/license
- *
- * http://api.jqueryui.com/menu/
  */
+
+//>>label: Menu
+//>>group: Widgets
+//>>description: Creates nestable menus.
+//>>docs: http://api.jqueryui.com/menu/
+//>>demos: http://jqueryui.com/menu/
+
 (function( factory ) {
 	if ( typeof define === "function" && define.amd ) {
 
@@ -31,12 +36,12 @@ return $.widget( "ui.menu", {
 	delay: 300,
 	options: {
 		icons: {
-			submenu: "ui-icon-carat-1-e"
+			submenu: "ui-icon-caret-1-e"
 		},
 		items: "> *",
 		menus: "ul",
 		position: {
-			my: "left-1 top",
+			my: "left top",
 			at: "right top"
 		},
 		role: "menu",
@@ -110,7 +115,8 @@ return $.widget( "ui.menu", {
 				var target = $( event.currentTarget );
 				// Remove ui-state-active class from siblings of the newly focused menu item
 				// to avoid a jump caused by adjacent elements both having a class with a border
-				target.siblings( ".ui-state-active" ).removeClass( "ui-state-active" );
+				target.siblings().children( ".ui-state-active" ).removeClass( "ui-state-active" );
+
 				this.focus( event, target );
 			},
 			mouseleave: "collapseAll",
@@ -169,17 +175,18 @@ return $.widget( "ui.menu", {
 			.removeClass( "ui-menu-item" )
 			.removeAttr( "role" )
 			.removeAttr( "aria-disabled" )
-			.removeUniqueId()
-			.removeClass( "ui-state-hover" )
-			.removeAttr( "tabIndex" )
-			.removeAttr( "role" )
-			.removeAttr( "aria-haspopup" )
-			.children().each( function() {
-				var elem = $( this );
-				if ( elem.data( "ui-menu-submenu-carat" ) ) {
-					elem.remove();
-				}
-			});
+			.children( ".ui-menu-item-wrapper" )
+				.removeUniqueId()
+				.removeClass( "ui-menu-item-wrapper ui-state-hover" )
+				.removeAttr( "tabIndex" )
+				.removeAttr( "role" )
+				.removeAttr( "aria-haspopup" )
+				.children().each(function() {
+					var elem = $( this );
+					if ( elem.data( "ui-menu-submenu-caret" ) ) {
+						elem.remove();
+					}
+				});
 
 		// Destroy menu dividers
 		this.element.find( ".ui-menu-divider" ).removeClass( "ui-menu-divider ui-widget-content" );
@@ -188,7 +195,6 @@ return $.widget( "ui.menu", {
 	_keydown: function( event ) {
 		var match, prev, character, skip,
 			preventDefault = true;
-
 		switch ( event.which ) {
 		case $.ui.keyCode.PAGE_UP:
 			this.previousPage( event );
@@ -251,14 +257,10 @@ return $.widget( "ui.menu", {
 
 			if ( match.length ) {
 				this.focus( event, match );
-				if ( match.length > 1 ) {
-					this.previousFilter = character;
-					this.filterTimer = this._delay(function() {
-						delete this.previousFilter;
-					}, 1000 );
-				} else {
+				this.previousFilter = character;
+				this.filterTimer = this._delay(function() {
 					delete this.previousFilter;
-				}
+				}, 1000 );
 			} else {
 				delete this.previousFilter;
 			}
@@ -271,7 +273,7 @@ return $.widget( "ui.menu", {
 
 	_activate: function( event ) {
 		if ( !this.active.is( ".ui-state-disabled" ) ) {
-			if ( this.active.is( "[aria-haspopup='true']" ) ) {
+			if ( this.active.children( "[aria-haspopup='true']" ).length ) {
 				this.expand( event );
 			} else {
 				this.select( event );
@@ -298,14 +300,14 @@ return $.widget( "ui.menu", {
 			})
 			.each(function() {
 				var menu = $( this ),
-					item = menu.parent(),
-					submenuCarat = $( "<span>" )
+					item = menu.prev(),
+					submenuCaret = $( "<span>" )
 						.addClass( "ui-menu-icon ui-icon " + icon )
-						.data( "ui-menu-submenu-carat", true );
+						.data( "ui-menu-submenu-caret", true );
 
 				item
 					.attr( "aria-haspopup", "true" )
-					.prepend( submenuCarat );
+					.prepend( submenuCaret );
 				menu.attr( "aria-labelledby", item.attr( "id" ) );
 			});
 
@@ -323,11 +325,14 @@ return $.widget( "ui.menu", {
 		// Don't refresh list items that are already adapted
 		items.not( ".ui-menu-item, .ui-menu-divider" )
 			.addClass( "ui-menu-item" )
-			.uniqueId()
-			.attr({
-				tabIndex: -1,
-				role: this._itemRole()
-			});
+			.children()
+				.not( ".ui-menu" )
+					.addClass( "ui-menu-item-wrapper" )
+					.uniqueId()
+					.attr({
+						tabIndex: -1,
+						role: this._itemRole()
+					});
 
 		// Add aria-disabled attribute to any disabled menu item
 		items.filter( ".ui-state-disabled" ).attr( "aria-disabled", "true" );
@@ -366,7 +371,10 @@ return $.widget( "ui.menu", {
 		this._scrollIntoView( item );
 
 		this.active = item.first();
-		focused = this.active.addClass( "ui-state-focus" ).removeClass( "ui-state-active" );
+		focused = this.active.children( ".ui-menu-item-wrapper" )
+			.addClass( "ui-state-focus" )
+			.removeClass( "ui-state-active" );
+
 		// Only update aria-activedescendant if there's a role
 		// otherwise we assume focus is managed elsewhere
 		if ( this.options.role ) {
@@ -376,8 +384,9 @@ return $.widget( "ui.menu", {
 		// Highlight active parent menu item, if any
 		this.active
 			.parent()
-			.closest( ".ui-menu-item" )
-			.addClass( "ui-state-active" );
+				.closest( ".ui-menu-item" )
+					.children( ".ui-menu-item-wrapper" )
+						.addClass( "ui-state-active" );
 
 		if ( event && event.type === "keydown" ) {
 			this._close();
@@ -423,7 +432,7 @@ return $.widget( "ui.menu", {
 			return;
 		}
 
-		this.active.removeClass( "ui-state-focus" );
+		this.active.children( ".ui-menu-item-wrapper" ).removeClass( "ui-state-focus" );
 		this.active = null;
 
 		this._trigger( "blur", event, { item: this.active } );
@@ -433,7 +442,7 @@ return $.widget( "ui.menu", {
 		clearTimeout( this.timer );
 
 		// Don't open if already open fixes a Firefox bug that caused a .5 pixel
-		// shift in the submenu position when mousing over the carat icon
+		// shift in the submenu position when mousing over the caret icon
 		if ( submenu.attr( "aria-hidden" ) !== "true" ) {
 			return;
 		}
@@ -642,7 +651,8 @@ return $.widget( "ui.menu", {
 			// Only match on items, not dividers or other content (#10571)
 			.filter( ".ui-menu-item" )
 			.filter(function() {
-				return regex.test( $( this ).text() );
+				return regex.test(
+					$.trim( $( this ).children( ".ui-menu-item-wrapper" ).text() ) );
 			});
 	}
 });
